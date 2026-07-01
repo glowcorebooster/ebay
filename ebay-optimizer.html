@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>eBay Listing Optimizer</title>
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@600;700&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: #07101E; color: #E2E8F0; font-family: 'Inter', system-ui, -apple-system, sans-serif; }
+    input:focus, textarea:focus { outline: none; border-color: #FFB60A !important; box-shadow: 0 0 0 3px rgba(255,182,10,0.12) !important; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+    .result-enter { animation: fadeIn 0.4s ease forwards; }
+    @keyframes pulse { 0%, 100% { opacity: 0.4; } 50% { opacity: 1; } }
+    .loading-dot { animation: pulse 1.4s ease-in-out infinite; }
+    .loading-dot:nth-child(2) { animation-delay: 0.2s; }
+    .loading-dot:nth-child(3) { animation-delay: 0.4s; }
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: #07101E; }
+    ::-webkit-scrollbar-thumb { background: #1A3050; border-radius: 3px; }
+    @media (max-width: 640px) {
+      .two-col { grid-template-columns: 1fr !important; }
+    }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+  <script type="text/babel">
+    const { useState } = React;
+
+    const SYSTEM = `You are a world-class eBay listing optimizer specializing in dropshipping. The user gives you a supplier product URL. Use web search to look up the product, then return eBay-optimized data.
+
+IMPORTANT: Return ONLY a raw JSON object — no markdown, no backticks, no explanation before or after. Start your response with { and end with }.
+
+Use this exact JSON structure:
+{
+  "original_title": "original product title from the supplier",
+  "ebay_title": "eBay title max 80 chars, keyword-rich, Title Case, no symbols like ! $ * ~",
+  "char_count": 55,
+  "keywords": ["keyword one", "keyword two", "keyword three", "keyword four", "keyword five", "keyword six", "keyword seven", "keyword eight", "keyword nine", "keyword ten"],
+  "item_specifics": {
+    "Brand": "Unbranded",
+    "Color": "Black",
+    "Material": "Plastic",
+    "Type": "Product Type",
+    "Size": "Standard",
+    "Condition": "New"
+  },
+  "description": "Paragraph one about key benefits and features.\n\nParagraph two about specs and details.\n\nParagraph three about use case and buyer reassurance.",
+  "recommendations": [
+    "Recommendation one",
+    "Recommendation two",
+    "Recommendation three",
+    "Recommendation four",
+    "Recommendation five",
+    "Recommendation six"
+  ],
+  "category": "Category > Subcategory > Item Type",
+  "listing_format": "Fixed Price — reason why",
+  "pricing_tip": "One sentence on pricing strategy."
+}
+
+eBay Best Match rules to follow:
+- Title: max 80 chars, no keyword stuffing, buyers search naturally
+- Item specifics: be thorough, they improve search ranking significantly
+- Description: accurate, helpful, buyer-focused — no HTML
+- Always recommend competitive pricing, fast handling, clear return policy, multiple photos`;
+
+    function CopyBtn({ text }) {
+      const [copied, setCopied] = useState(false);
+      const handle = async () => {
+        try { await navigator.clipboard.writeText(text || ''); setCopied(true); setTimeout(() => setCopied(false), 2000); } catch(e) {}
+      };
+      return (
+        <button onClick={handle} style={{ background: copied ? '#14532D' : '#152540', border: `1px solid ${copied ? '#166534' : '#1A3050'}`, color: copied ? '#4ADE80' : '#5A7294', borderRadius: 6, padding: '4px 12px', fontSize: 11, fontWeight: 600, cursor: 'pointer', letterSpacing: '0.3px', whiteSpace: 'nowrap', transition: 'all 0.2s' }}>
+          {copied ? '✓ COPIED' : 'COPY'}
+        </button>
+      );
+    }
+
+    function Card({ icon, title, badge, rightSlot, children }) {
+      return (
+        <div style={{ background: '#0D1B2E', border: '1px solid #1A3050', borderRadius: 14, overflow: 'hidden' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '13px 18px', borderBottom: '1px solid #1A3050' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <span style={{ fontSize: 15 }}>{icon}</span>
+              <span style={{ fontWeight: 700, fontSize: 13, color: '#CBD5E1' }}>{title}</span>
+              {badge != null && <span style={{ background: '#1A3050', color: '#60A5FA', borderRadius: 20, padding: '2px 8px', fontSize: 11, fontWeight: 600 }}>{badge}</span>}
+            </div>
+            {rightSlot}
+          </div>
+          <div style={{ padding: 18 }}>{children}</div>
+        </div>
+      );
+    }
+
+    function ApiKeySetup({ onSave }) {
+      const [key, setKey] = useState('');
+      const valid = key.startsWith('sk-ant') || key.startsWith('sk-');
+      return (
+        <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}>
+          <div style={{ background: '#0D1B2E', border: '1px solid #1A3050', borderRadius: 16, padding: 32, maxWidth: 460, width: '100%' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 24 }}>
+              <div style={{ width: 44, height: 44, borderRadius: 10, background: '#FFB60A', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22, flexShrink: 0 }}>📦</div>
+              <div>
+                <h2 style={{ fontSize: 18, fontWeight: 700, fontFamily: "'Space Grotesk', sans-serif", color: '#F8FAFC', letterSpacing: '-0.3px' }}>eBay Listing Optimizer</h2>
+                <p style={{ fontSize: 12, color: '#3A6090', marginTop: 2 }}>Enter your Anthropic API key to get started</p>
+              </div>
+            </div>
+            <label style={{ display: 'block', fontSize: 10, fontWeight: 700, color: '#3A6090', marginBottom: 8, letterSpacing: '1px', textTransform: 'uppercase' }}>Anthropic API Key</label>
+            <input
+              type="password" value={key} onChange={e => setKey(e.target.value)}
+              onKeyDown={e => e.key === 'Enter' && valid && onSave(key)}
+              placeholder="sk-ant-api03-..."
+              style={{ width: '100%', background: '#07101E', border: '1px solid #1A3050', borderRadius: 8, padding: '11px 14px', color: '#E2E8F0', fontSize: 13, fontFamily: 'ui-monospace, monospace', marginBottom: 12, transition: 'border-color 0.2s' }}
+            />
+            <button onClick={() => valid && onSave(key)} disabled={!valid}
+              style={{ width: '100%', background: !valid ? '#152540' : '#FFB60A', color: !valid ? '#3A6090' : '#07101E', border: 'none', borderRadius: 8, padding: 12, fontSize: 14, fontWeight: 700, cursor: !valid ? 'not-allowed' : 'pointer', fontFamily: "'Space Grotesk', sans-serif", transition: 'all 0.2s' }}>
+              Save & Continue →
+            </button>
+            <p style={{ marginTop: 14, fontSize: 11, color: '#1A3050', lineHeight: 1.7, textAlign: 'center' }}>
+              Saved to browser only (localStorage). Never uploaded anywhere.<br />
+              Get key: <a href="https://console.anthropic.com" target="_blank" style={{ color: '#3A6090' }}>console.anthropic.com</a>
+            </p>
+          </div>
+        </div>
+      );
+    }
+
+    function App() {
+      const [apiKey, setApiKey] = useState(() => localStorage.getItem('ebay_opt_key') || '');
+      const [url, setUrl] = useState('');
+      const [loading, setLoading] = useState(false);
+      const [loadingMsg, setLoadingMsg] = useState('');
+      const [result, setResult] = useState(null);
+      const [error, setError] = useState('');
+      const [debugInfo, setDebugInfo] = useState('');
+
+      const saveKey = (k) => { localStorage.setItem('ebay_opt_key', k); setApiKey(k); };
+
+      const msgs = ['Fetching product page...','Analyzing product details...','Generating eBay title...','Building item specifics...','Crafting SEO keywords...','Writing optimized description...','Compiling recommendations...'];
+
+      const analyze = async () => {
+        if (!url.trim() || loading) return;
+        setLoading(true); setError(''); setResult(null); setDebugInfo('');
+        let idx = 0; setLoadingMsg(msgs[0]);
+        const ticker = setInterval(() => { idx = (idx + 1) % msgs.length; setLoadingMsg(msgs[idx]); }, 1800);
+
+        try {
+          const res = await fetch('https://api.anthropic.com/v1/messages', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'x-api-key': apiKey,
+              'anthropic-version': '2023-06-01',
+              'anthropic-dangerous-direct-browser-access': 'true',
+            },
+            body: JSON.stringify({
+              model: 'claude-sonnet-4-6',
+              max_tokens: 3000,
+              system: SYSTEM,
+              tools: [{ type: 'web_search_20250305', name: 'web_search' }],
+              messages: [{ role: 'user', content: `Analyze this supplier product URL and return the eBay optimization JSON: ${url.trim()}` }],
+            }),
+          });
+
+          const data = await res.json();
+
+          // Catch API-level errors (bad key, rate limit, etc.)
+          if (data.error) throw new Error(`API Error: ${data.error.message}`);
+
+          // Check stop reason
+          if (data.stop_reason === 'max_tokens') {
+            throw new Error('Response was cut off (max_tokens reached). Try a simpler product URL.');
+          }
+
+          // Extract all text blocks from response
+          const textBlocks = (data.content || []).filter(b => b.type === 'text').map(b => b.text);
+          const rawText = textBlocks.join('').trim();
+
+          if (!rawText) {
+            setDebugInfo(JSON.stringify(data.content, null, 2));
+            throw new Error('No text response received. See debug info below.');
+          }
+
+          // Find the JSON object — look for first { to last }
+          const jsonStart = rawText.indexOf('{');
+          const jsonEnd = rawText.lastIndexOf('}');
+          if (jsonStart === -1 || jsonEnd === -1) {
+            setDebugInfo(rawText);
+            throw new Error('Could not find JSON in response. See debug info below.');
+          }
+
+          const jsonStr = rawText.slice(jsonStart, jsonEnd + 1);
+          const parsed = JSON.parse(jsonStr);
+          setResult(parsed);
+
+        } catch(e) {
+          setError(e.message || 'Something went wrong. Check your API key or try again.');
+        } finally {
+          clearInterval(ticker);
+          setLoading(false);
+        }
+      };
+
+      if (!apiKey) return <ApiKeySetup onSave={saveKey} />;
+
+      const titleLen = result?.char_count ?? result?.ebay_title?.length ?? 0;
+      const titlePct = Math.min((titleLen / 80) * 100, 100);
+      const barColor = titlePct > 90 ? '#EF4444' : titlePct > 75 ? '#F59E0B' : '#22C55E';
+      const barLabel = titlePct > 90 ? 'At limit' : titlePct > 75 ? 'Good' : 'Excellent';
+
+      return (
+        <div style={{ minHeight: '100vh', background: '#07101E', color: '#E2E8F0' }}>
+          {/* Header */}
+          <div style={{ background: 'linear-gradient(180deg,#0D1B2E 0%,#07101E 100%)', borderBottom: '1px solid #1A3050' }}>
+            <div style={{ maxWidth: 860, margin: '0 auto', padding: '18px 20px 16px', display: 'flex', alignItems: 'center', gap: 12 }}>
+              <div style={{ width: 40, height: 40, borderRadius: 10, background: '#FFB60A', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20, flexShrink: 0 }}>📦</div>
+              <div>
+                <h1 style={{ fontSize: 19, fontWeight: 700, fontFamily: "'Space Grotesk',sans-serif", color: '#F8FAFC', letterSpacing: '-0.4px', lineHeight: 1.2 }}>eBay Listing Optimizer</h1>
+                <p style={{ fontSize: 11, color: '#3A6090', marginTop: 2 }}>AI-powered · eBay Best Match guidelines</p>
+              </div>
+              <div style={{ marginLeft: 'auto', display: 'flex', gap: 6, alignItems: 'center' }}>
+                {['#E53238','#0064D2','#F5AF02','#86B817'].map((c,i) => <div key={i} style={{ width: 8, height: 8, borderRadius: '50%', background: c }} />)}
+                <button onClick={() => { localStorage.removeItem('ebay_opt_key'); setApiKey(''); }} style={{ marginLeft: 8, background: 'transparent', border: '1px solid #1A3050', color: '#3A6090', borderRadius: 6, padding: '4px 10px', fontSize: 11, cursor: 'pointer' }}>
+                  Change Key
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* Body */}
+          <div style={{ maxWidth: 860, margin: '0 auto', padding: '22px 20px 56px' }}>
+
+            {/* Input */}
+            <div style={{ background: '#0D1B2E', border: '1px solid #1A3050', borderRadius: 14, padding: '16px 18px', marginBottom: 18 }}>
+              <label style={{ display: 'block', fontSize: 10, fontWeight: 700, color: '#3A6090', marginBottom: 10, letterSpacing: '1px', textTransform: 'uppercase' }}>Supplier Product URL</label>
+              <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+                <input value={url} onChange={e => setUrl(e.target.value)} onKeyDown={e => e.key === 'Enter' && analyze()}
+                  placeholder="https://www.amazon.com/dp/... or aliexpress.com/item/..."
+                  style={{ flex: '1 1 260px', background: '#07101E', border: '1px solid #1A3050', borderRadius: 8, padding: '11px 14px', color: '#E2E8F0', fontSize: 13, fontFamily: "ui-monospace,'Cascadia Code',monospace", transition: 'border-color 0.2s' }} />
+                <button onClick={analyze} disabled={loading || !url.trim()}
+                  style={{ background: (!url.trim()||loading) ? '#0D1B2E' : '#FFB60A', color: (!url.trim()||loading) ? '#3A6090' : '#07101E', border: `1px solid ${(!url.trim()||loading) ? '#1A3050' : '#FFB60A'}`, borderRadius: 8, padding: '11px 22px', fontSize: 13, fontWeight: 700, cursor: (loading||!url.trim()) ? 'not-allowed' : 'pointer', whiteSpace: 'nowrap', fontFamily: "'Space Grotesk',sans-serif", transition: 'all 0.2s' }}>
+                  {loading ? 'Analyzing...' : 'Optimize →'}
+                </button>
+              </div>
+              <div style={{ marginTop: 10, display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                {['Amazon','AliExpress','Walmart','CJ Dropshipping','Temu','DHgate'].map(s => (
+                  <span key={s} style={{ fontSize: 11, color: '#3A6090', background: '#0A1628', border: '1px solid #152540', borderRadius: 20, padding: '2px 9px' }}>{s}</span>
+                ))}
+              </div>
+            </div>
+
+            {/* Loading */}
+            {loading && (
+              <div style={{ textAlign: 'center', padding: '52px 20px' }}>
+                <div style={{ width: 40, height: 40, border: '3px solid #152540', borderTopColor: '#FFB60A', borderRadius: '50%', animation: 'spin 0.75s linear infinite', margin: '0 auto 18px' }} />
+                <p style={{ color: '#5A7294', fontSize: 13, marginBottom: 8 }}>{loadingMsg}</p>
+                <div style={{ display: 'flex', justifyContent: 'center', gap: 5 }}>
+                  {[0,1,2].map(i => <div key={i} className="loading-dot" style={{ width: 6, height: 6, borderRadius: '50%', background: '#FFB60A' }} />)}
+                </div>
+              </div>
+            )}
+
+            {/* Error */}
+            {error && !loading && (
+              <div style={{ background: '#1A0A0A', border: '1px solid #7F1D1D', borderRadius: 12, padding: '14px 16px', marginBottom: 14 }}>
+                <p style={{ color: '#FCA5A5', fontSize: 13, lineHeight: 1.6, marginBottom: debugInfo ? 10 : 0 }}><strong>⚠️ Error:</strong> {error}</p>
+                {debugInfo && (
+                  <details style={{ marginTop: 8 }}>
+                    <summary style={{ color: '#7F1D1D', fontSize: 11, cursor: 'pointer' }}>Debug info</summary>
+                    <pre style={{ marginTop: 8, fontSize: 10, color: '#6B7280', whiteSpace: 'pre-wrap', wordBreak: 'break-all', background: '#0D0505', padding: 10, borderRadius: 6 }}>{debugInfo}</pre>
+                  </details>
+                )}
+              </div>
+            )}
+
+            {/* Results */}
+            {result && !loading && (
+              <div className="result-enter" style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+
+                {/* Banner */}
+                <div style={{ background: 'linear-gradient(135deg,#0D1B2E,#0A1628)', border: '1px solid rgba(255,182,10,0.27)', borderRadius: 14, padding: '14px 18px', display: 'flex', alignItems: 'center', gap: 14, flexWrap: 'wrap' }}>
+                  <div style={{ width: 36, height: 36, borderRadius: 8, background: '#FFB60A', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, flexShrink: 0 }}>✅</div>
+                  <div>
+                    <p style={{ fontSize: 13, fontWeight: 700, color: '#FFB60A', fontFamily: "'Space Grotesk',sans-serif" }}>Optimization Complete</p>
+                    <p style={{ fontSize: 12, color: '#5A7294', marginTop: 2 }}>eBay listing ready. Copy each section below.</p>
+                  </div>
+                  <button onClick={() => { setResult(null); setUrl(''); setError(''); setDebugInfo(''); }}
+                    style={{ marginLeft: 'auto', background: 'transparent', border: '1px solid #1A3050', color: '#5A7294', borderRadius: 7, padding: '6px 14px', fontSize: 12, cursor: 'pointer' }}>
+                    ← New Search
+                  </button>
+                </div>
+
+                {/* Title */}
+                <Card icon="🏷️" title="eBay Optimized Title" rightSlot={<CopyBtn text={result.ebay_title} />}>
+                  {result.original_title && (
+                    <div style={{ marginBottom: 14, paddingBottom: 14, borderBottom: '1px solid #152540' }}>
+                      <p style={{ fontSize: 10, color: '#3A6090', textTransform: 'uppercase', letterSpacing: '0.8px', fontWeight: 600, marginBottom: 4 }}>Original Supplier Title</p>
+                      <p style={{ fontSize: 12, color: '#3A6090', fontStyle: 'italic' }}>{result.original_title}</p>
+                    </div>
+                  )}
+                  <p style={{ fontSize: 15, fontWeight: 600, color: '#F1F5F9', lineHeight: 1.55, fontFamily: "ui-monospace,'Cascadia Code',monospace", background: '#07101E', padding: '12px 14px', borderRadius: 8, border: '1px solid #152540', marginBottom: 14 }}>
+                    {result.ebay_title}
+                  </p>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                    <div style={{ flex: 1, height: 5, background: '#152540', borderRadius: 3, overflow: 'hidden' }}>
+                      <div style={{ width: `${titlePct}%`, height: '100%', background: barColor, borderRadius: 3, transition: 'width 0.6s cubic-bezier(0.4,0,0.2,1)' }} />
+                    </div>
+                    <span style={{ fontSize: 12, color: barColor, fontWeight: 700, whiteSpace: 'nowrap' }}>{titleLen}/80 · {barLabel}</span>
+                  </div>
+                </Card>
+
+                {/* Keywords */}
+                <Card icon="🔍" title="SEO Keywords" badge={(result.keywords||[]).length} rightSlot={<CopyBtn text={(result.keywords||[]).join(', ')} />}>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+                    {(result.keywords||[]).map((kw,i) => (
+                      <span key={i} style={{ background: '#0A1628', border: '1px solid #1A3050', color: '#93C5FD', borderRadius: 20, padding: '5px 13px', fontSize: 12, fontFamily: 'ui-monospace,monospace' }}>{kw}</span>
+                    ))}
+                  </div>
+                </Card>
+
+                {/* Two-col */}
+                <div className="two-col" style={{ display: 'grid', gridTemplateColumns: 'minmax(0,2fr) minmax(0,1fr)', gap: 14 }}>
+                  <Card icon="📋" title="Item Specifics">
+                    <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                      <tbody>
+                        {Object.entries(result.item_specifics||{}).map(([k,v],i,arr) => (
+                          <tr key={k} style={{ borderBottom: i < arr.length-1 ? '1px solid #0D1929' : 'none' }}>
+                            <td style={{ padding: '8px 10px 8px 0', fontSize: 11, color: '#3A6090', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.4px', whiteSpace: 'nowrap', width: '38%' }}>{k}</td>
+                            <td style={{ padding: '8px 0', fontSize: 13, color: '#CBD5E1' }}>{v}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </Card>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                    <div style={{ background: '#0D1B2E', border: '1px solid #1A3050', borderRadius: 12, padding: 14, flex: '1 1 auto' }}>
+                      <p style={{ fontSize: 10, color: '#3A6090', textTransform: 'uppercase', letterSpacing: '0.8px', fontWeight: 700, marginBottom: 6 }}>Category</p>
+                      <p style={{ fontSize: 12, color: '#CBD5E1', lineHeight: 1.6 }}>{result.category}</p>
+                    </div>
+                    <div style={{ background: '#0D1B2E', border: '1px solid #1A3050', borderRadius: 12, padding: 14, flex: '1 1 auto' }}>
+                      <p style={{ fontSize: 10, color: '#3A6090', textTransform: 'uppercase', letterSpacing: '0.8px', fontWeight: 700, marginBottom: 6 }}>Listing Format</p>
+                      <p style={{ fontSize: 12, color: '#22C55E', fontWeight: 700 }}>{(result.listing_format||'').split('—')[0].split('-')[0].trim()}</p>
+                      <p style={{ fontSize: 11, color: '#5A7294', marginTop: 3 }}>{(result.listing_format||'').includes('—') ? result.listing_format.split('—')[1]?.trim() : result.listing_format}</p>
+                    </div>
+                    <div style={{ background: '#0D1B2E', border: '1px solid rgba(255,182,10,0.2)', borderRadius: 12, padding: 14, flex: '1 1 auto' }}>
+                      <p style={{ fontSize: 10, color: '#FFB60A', textTransform: 'uppercase', letterSpacing: '0.8px', fontWeight: 700, marginBottom: 6 }}>💰 Pricing Tip</p>
+                      <p style={{ fontSize: 12, color: '#CBD5E1', lineHeight: 1.6 }}>{result.pricing_tip}</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Description */}
+                <Card icon="📝" title="Optimized Description" rightSlot={<CopyBtn text={result.description} />}>
+                  <p style={{ fontSize: 13, color: '#CBD5E1', lineHeight: 1.85, whiteSpace: 'pre-wrap' }}>{result.description}</p>
+                </Card>
+
+                {/* Recommendations */}
+                <Card icon="⚡" title="Listing Improvement Recommendations" badge={(result.recommendations||[]).length}>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                    {(result.recommendations||[]).map((rec,i) => (
+                      <div key={i} style={{ display: 'flex', gap: 12, padding: '10px 8px', borderRadius: 8, background: i%2===0 ? '#0A1628' : 'transparent' }}>
+                        <div style={{ width: 22, height: 22, borderRadius: 6, background: '#FFB60A', color: '#07101E', fontSize: 11, fontWeight: 800, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: 1, fontFamily: "'Space Grotesk',sans-serif" }}>{i+1}</div>
+                        <p style={{ fontSize: 13, color: '#CBD5E1', lineHeight: 1.65 }}>{rec}</p>
+                      </div>
+                    ))}
+                  </div>
+                </Card>
+
+                <p style={{ textAlign: 'center', fontSize: 11, color: '#1A3050', marginTop: 4 }}>
+                  Based on eBay Best Match guidelines · AI-generated — always verify before publishing
+                </p>
+              </div>
+            )}
+          </div>
+        </div>
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+  </script>
+</body>
+</html>
