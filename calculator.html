@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="tl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>eBay Fee Calculator</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --blue-900:#0b2559;
+    --blue-700:#1548b8;
+    --blue-600:#2563eb;
+    --blue-500:#3b82f6;
+    --blue-100:#e8f0ff;
+    --blue-50:#f4f8ff;
+    --ink:#0f1b33;
+    --muted:#6b7794;
+    --line:#e4eaf6;
+    --white:#ffffff;
+    --green:#0f9d58;
+    --red:#e5484d;
+    --amber:#c17b16;
+    --shadow: 0 12px 30px -12px rgba(21,72,184,0.25);
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    font-family:'Plus Jakarta Sans', sans-serif;
+    background:
+      radial-gradient(1200px 500px at 10% -10%, var(--blue-100), transparent 60%),
+      radial-gradient(900px 500px at 110% 10%, #eef4ff, transparent 55%),
+      var(--white);
+    color:var(--ink);
+    min-height:100vh;
+    padding:32px 16px 64px;
+  }
+  .wrap{max-width:920px;margin:0 auto;}
+  header{margin-bottom:28px;}
+  .eyebrow{
+    display:inline-flex;align-items:center;gap:8px;
+    font-size:12.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;
+    color:var(--blue-700);
+    background:var(--blue-100);
+    padding:6px 12px;border-radius:999px;
+    margin-bottom:14px;
+  }
+  h1{
+    font-family:'Syne',sans-serif;
+    font-size:clamp(28px,4vw,40px);
+    font-weight:800;
+    margin:0 0 8px;
+    letter-spacing:-0.01em;
+    color:var(--blue-900);
+  }
+  header p{margin:0;color:var(--muted);font-size:15px;max-width:60ch;line-height:1.5;}
+
+  .modeswitch{
+    display:flex;gap:6px;background:var(--blue-50);border:1px solid var(--line);
+    padding:5px;border-radius:14px;margin:24px 0 20px;width:fit-content;
+  }
+  .modeswitch button{
+    border:none;background:transparent;padding:10px 18px;border-radius:10px;
+    font-family:'Plus Jakarta Sans',sans-serif;font-weight:700;font-size:14px;color:var(--muted);
+    cursor:pointer;transition:all .2s ease;
+  }
+  .modeswitch button.active{
+    background:var(--blue-900);color:#fff;box-shadow:var(--shadow);
+  }
+
+  .grid{display:grid;grid-template-columns:1.15fr 1fr;gap:20px;align-items:start;}
+  @media (max-width:760px){.grid{grid-template-columns:1fr;}}
+
+  .card{
+    background:var(--white);
+    border:1px solid var(--line);
+    border-radius:20px;
+    padding:24px;
+    box-shadow:0 1px 0 rgba(15,27,51,0.02);
+  }
+  .card h2{
+    font-family:'Syne',sans-serif;
+    font-size:17px;font-weight:700;margin:0 0 4px;color:var(--blue-900);
+  }
+  .card .sub{font-size:13px;color:var(--muted);margin:0 0 18px;}
+
+  .field{margin-bottom:16px;}
+  .field label{
+    display:flex;justify-content:space-between;align-items:center;
+    font-size:13px;font-weight:700;color:var(--ink);margin-bottom:6px;
+  }
+  .field label .pct-tag{
+    font-size:11px;font-weight:600;color:var(--blue-700);background:var(--blue-100);
+    padding:2px 8px;border-radius:999px;
+  }
+  .inputwrap{position:relative;}
+  .inputwrap .prefix{
+    position:absolute;left:14px;top:50%;transform:translateY(-50%);
+    color:var(--muted);font-weight:600;font-size:14px;pointer-events:none;
+  }
+  .inputwrap .suffix{
+    position:absolute;right:14px;top:50%;transform:translateY(-50%);
+    color:var(--muted);font-weight:600;font-size:14px;pointer-events:none;
+  }
+  input[type=number]{
+    width:100%;
+    padding:12px 14px 12px 30px;
+    border:1.5px solid var(--line);
+    border-radius:12px;
+    font-family:'Plus Jakarta Sans',sans-serif;
+    font-size:15px;font-weight:600;color:var(--ink);
+    background:var(--blue-50);
+    outline:none;
+    transition:border-color .15s ease, background .15s ease;
+  }
+  input[type=number].pct{padding-left:14px;padding-right:34px;}
+  input[type=number]:focus{border-color:var(--blue-600);background:#fff;}
+  input[type=number]::-webkit-outer-spin-button,
+  input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;margin:0;}
+
+  .toggle-row{
+    display:flex;align-items:center;justify-content:space-between;
+    padding:10px 0;border-top:1px dashed var(--line);margin-top:4px;
+  }
+  .toggle-row span{font-size:13.5px;font-weight:600;color:var(--muted);}
+  .switch{position:relative;width:40px;height:22px;flex-shrink:0;}
+  .switch input{opacity:0;width:0;height:0;}
+  .slider{
+    position:absolute;inset:0;background:#d7deee;border-radius:999px;cursor:pointer;transition:.2s;
+  }
+  .slider:before{
+    content:"";position:absolute;width:16px;height:16px;left:3px;top:3px;
+    background:#fff;border-radius:50%;transition:.2s;box-shadow:0 1px 3px rgba(0,0,0,.2);
+  }
+  .switch input:checked + .slider{background:var(--blue-600);}
+  .switch input:checked + .slider:before{transform:translateX(18px);}
+
+  .custom-fee{max-height:0;overflow:hidden;transition:max-height .25s ease;}
+  .custom-fee.open{max-height:100px;margin-top:12px;}
+
+  /* Results card */
+  .results{
+    background:linear-gradient(160deg, var(--blue-900), #123a86);
+    color:#fff;border:none;position:sticky;top:24px;
+  }
+  .results h2{color:#fff;}
+  .results .sub{color:#b7c6ef;}
+  .headline{
+    text-align:center;padding:18px 10px 22px;
+    border-bottom:1px solid rgba(255,255,255,0.15);
+    margin-bottom:16px;
+  }
+  .headline .label{font-size:12.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#9fb4e8;}
+  .headline .amount{
+    font-family:'Syne',sans-serif;font-size:38px;font-weight:800;margin:6px 0 0;
+    color:#fff;
+  }
+  .headline .amount.warn{color:#ffd479;}
+  .breakdown-row{
+    display:flex;justify-content:space-between;align-items:baseline;
+    font-size:13.5px;padding:7px 0;color:#dbe4f9;
+  }
+  .breakdown-row.total{
+    border-top:1px solid rgba(255,255,255,0.2);
+    margin-top:6px;padding-top:12px;
+    font-weight:800;font-size:15px;color:#fff;
+  }
+  .breakdown-row .neg{color:#ffb4b4;}
+  .breakdown-row .pos{color:#8fe3b0;}
+  .breakdown-row .name{color:#f1f5ff;font-weight:600;}
+  .note{
+    margin-top:18px;padding:12px 14px;background:rgba(255,255,255,0.08);
+    border-radius:12px;font-size:12.5px;line-height:1.5;color:#c9d6f4;
+  }
+  .note b{color:#fff;}
+  footer{margin-top:22px;font-size:12px;color:var(--muted);text-align:center;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <span class="eyebrow">Income Edge · Seller Tools</span>
+    <h1>eBay Fee Calculator</h1>
+    <p>I-type ang halaga, makikita mo agad ang breakdown ng fees at ang tunay na kikitain — o kung magkano dapat ang ipapatong mo sa presyo para bumalik ang puhunan mo.</p>
+  </header>
+
+  <div class="modeswitch">
+    <button id="btnForward" class="active">Presyo → Kikitain</button>
+    <button id="btnReverse">Puhunan → Ipapresyo</button>
+  </div>
+
+  <div class="grid">
+    <!-- INPUT CARD -->
+    <div class="card">
+      <div id="forwardInputs">
+        <h2>Presyo ng Order</h2>
+        <p class="sub">Ito ang babayaran ng buyer sa eBay (order total).</p>
+
+        <div class="field">
+          <label for="fwdAmount">Order Total</label>
+          <div class="inputwrap">
+            <span class="prefix">$</span>
+            <input type="number" id="fwdAmount" step="0.01" value="10.59" min="0">
+          </div>
+        </div>
+      </div>
+
+      <div id="reverseInputs" style="display:none;">
+        <h2>Puhunan Mo (Dropshipping Cost)</h2>
+        <p class="sub">Kung magkano binili mo mismo ang item, at gusto mong kikita pa.</p>
+
+        <div class="field">
+          <label for="revCost">Cost / Puhunan</label>
+          <div class="inputwrap">
+            <span class="prefix">$</span>
+            <input type="number" id="revCost" step="0.01" value="6.10" min="0">
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="revProfit">Gustong Kita (Profit)</label>
+          <div class="inputwrap">
+            <span class="prefix">$</span>
+            <input type="number" id="revProfit" step="0.01" value="0" min="0">
+          </div>
+        </div>
+      </div>
+
+      <h2 style="margin-top:22px;">Fees (% ng Order Total)</h2>
+      <p class="sub">Base sa resibo mong na-upload — pwede mong i-edit kung iba ang category o location ng buyer.</p>
+
+      <div class="field">
+        <label for="taxPct">Sales Tax <span class="pct-tag">na-collect ng eBay galing buyer</span></label>
+        <div class="inputwrap">
+          <input type="number" id="taxPct" class="pct" step="0.01" value="13.13" min="0">
+          <span class="suffix">%</span>
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="txnPct">Transaction Fee</label>
+        <div class="inputwrap">
+          <input type="number" id="txnPct" class="pct" step="0.01" value="20.96" min="0">
+          <span class="suffix">%</span>
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="adPct">Ad Fee (Standard)</label>
+        <div class="inputwrap">
+          <input type="number" id="adPct" class="pct" step="0.01" value="14.54" min="0">
+          <span class="suffix">%</span>
+        </div>
+      </div>
+
+      <div class="toggle-row">
+        <span>Magdagdag ng sarili kong % fee</span>
+        <label class="switch">
+          <input type="checkbox" id="customToggle">
+          <span class="slider"></span>
+        </label>
+      </div>
+      <div class="custom-fee" id="customFeeWrap">
+        <div class="field" style="margin-bottom:0;">
+          <label for="customPct">Custom Fee</label>
+          <div class="inputwrap">
+            <input type="number" id="customPct" class="pct" step="0.01" value="0" min="0">
+            <span class="suffix">%</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RESULTS CARD -->
+    <div class="card results">
+      <h2 id="resultsTitle">Order Earnings</h2>
+      <p class="sub" id="resultsSub">Ito ang matitira sa'yo pagkatapos ng lahat ng fees.</p>
+
+      <div class="headline">
+        <div class="label" id="headlineLabel">Kikitain Mo</div>
+        <div class="amount" id="headlineAmount">$0.00</div>
+      </div>
+
+      <div id="breakdownList"></div>
+
+      <div class="note" id="resultNote"></div>
+    </div>
+  </div>
+
+  <footer>Ginawa para sa Income Edge · Ang mga % fee ay hango sa aktwal na resibo — pwedeng iba depende sa category, promotion, at buyer's state.</footer>
+</div>
+
+<script>
+const $ = id => document.getElementById(id);
+
+const btnForward = $('btnForward');
+const btnReverse = $('btnReverse');
+const forwardInputs = $('forwardInputs');
+const reverseInputs = $('reverseInputs');
+let mode = 'forward';
+
+btnForward.onclick = () => setMode('forward');
+btnReverse.onclick = () => setMode('reverse');
+
+function setMode(m){
+  mode = m;
+  btnForward.classList.toggle('active', m==='forward');
+  btnReverse.classList.toggle('active', m==='reverse');
+  forwardInputs.style.display = m==='forward' ? 'block' : 'none';
+  reverseInputs.style.display = m==='reverse' ? 'block' : 'none';
+  $('resultsTitle').textContent = m==='forward' ? 'Order Earnings' : 'Presyong Ilalagay sa eBay';
+  $('resultsSub').textContent = m==='forward'
+    ? 'Ito ang matitira sa\'yo pagkatapos ng lahat ng fees.'
+    : 'Ito ang dapat mong i-list sa eBay para bumalik ang puhunan mo + kita.';
+  $('headlineLabel').textContent = m==='forward' ? 'Kikitain Mo' : 'Ipa-presyo Mo';
+  calculate();
+}
+
+$('customToggle').addEventListener('change', e=>{
+  $('customFeeWrap').classList.toggle('open', e.target.checked);
+  calculate();
+});
+
+[ 'fwdAmount','revCost','revProfit','taxPct','txnPct','adPct','customPct' ].forEach(id=>{
+  $(id).addEventListener('input', calculate);
+});
+
+function money(n){
+  const sign = n < 0 ? '-' : '';
+  return sign + '$' + Math.abs(n).toFixed(2);
+}
+
+function getFeePcts(){
+  const tax = parseFloat($('taxPct').value)||0;
+  const txn = parseFloat($('txnPct').value)||0;
+  const ad = parseFloat($('adPct').value)||0;
+  const custom = $('customToggle').checked ? (parseFloat($('customPct').value)||0) : 0;
+  return {tax, txn, ad, custom, total: tax+txn+ad+custom};
+}
+
+function renderBreakdown(rows){
+  $('breakdownList').innerHTML = rows.map(r=>{
+    const cls = r.type==='neg' ? 'neg' : r.type==='pos' ? 'pos' : '';
+    const totalCls = r.total ? ' total' : '';
+    return `<div class="breakdown-row${totalCls}">
+      <span class="name">${r.label}</span>
+      <span class="${cls}">${r.value}</span>
+    </div>`;
+  }).join('');
+}
+
+function calculate(){
+  const fees = getFeePcts();
+
+  if(mode === 'forward'){
+    const orderTotal = parseFloat($('fwdAmount').value)||0;
+    const taxAmt = orderTotal * fees.tax/100;
+    const txnAmt = orderTotal * fees.txn/100;
+    const adAmt = orderTotal * fees.ad/100;
+    const customAmt = orderTotal * fees.custom/100;
+    const totalFees = taxAmt+txnAmt+adAmt+customAmt;
+    const earnings = orderTotal - totalFees;
+
+    $('headlineAmount').textContent = money(earnings);
+    $('headlineAmount').classList.toggle('warn', earnings < 0);
+
+    const rows = [
+      {label:'Order Total', value: money(orderTotal)},
+      {label:`Sales Tax (${fees.tax}%)`, value: money(-taxAmt), type:'neg'},
+      {label:`Transaction Fee (${fees.txn}%)`, value: money(-txnAmt), type:'neg'},
+      {label:`Ad Fee (${fees.ad}%)`, value: money(-adAmt), type:'neg'},
+    ];
+    if(fees.custom > 0){
+      rows.push({label:`Custom Fee (${fees.custom}%)`, value: money(-customAmt), type:'neg'});
+    }
+    rows.push({label:'Order Earnings', value: money(earnings), total:true});
+    renderBreakdown(rows);
+
+    $('resultNote').innerHTML = `<b>Total fees:</b> ${money(totalFees)} (${fees.total.toFixed(2)}% ng order total). Hindi kasama dito ang refund.`;
+
+  } else {
+    const cost = parseFloat($('revCost').value)||0;
+    const profit = parseFloat($('revProfit').value)||0;
+    const target = cost + profit;
+    const feeFraction = fees.total/100;
+
+    if(feeFraction >= 1){
+      $('headlineAmount').textContent = '—';
+      $('headlineAmount').classList.add('warn');
+      renderBreakdown([{label:'Fees exceed 100%', value:'Ayusin ang % fees', type:'neg'}]);
+      $('resultNote').innerHTML = 'Ang kabuuang % ng fees mo ay 100% o higit pa — imposibleng bumalik ang puhunan. I-check ang mga fee %.';
+      return;
+    }
+
+    const price = target / (1 - feeFraction);
+    const taxAmt = price * fees.tax/100;
+    const txnAmt = price * fees.txn/100;
+    const adAmt = price * fees.ad/100;
+    const customAmt = price * fees.custom/100;
+    const totalFees = taxAmt+txnAmt+adAmt+customAmt;
+    const earnings = price - totalFees;
+
+    $('headlineAmount').textContent = money(price);
+    $('headlineAmount').classList.remove('warn');
+
+    const rows = [
+      {label:'Puhunan (Cost)', value: money(cost)},
+      {label:'Gustong Kita', value: money(profit)},
+      {label:'= Kailangan Bumalik', value: money(target), total:true},
+    ];
+    renderBreakdown(rows);
+
+    $('resultNote').innerHTML =
+      `I-list ang item sa <b>${money(price)}</b> sa eBay.<br>
+       Pagkatapos ng fees (Tax ${money(-taxAmt)}, Transaction ${money(-txnAmt)}, Ad ${money(-adAmt)}${fees.custom>0? `, Custom ${money(-customAmt)}`:''}),
+       ang matitira sa\'yo ay <b>${money(earnings)}</b> — dapat katumbas ng puhunan + kita mo.`;
+  }
+}
+
+calculate();
+</script>
+</body>
+</html>
