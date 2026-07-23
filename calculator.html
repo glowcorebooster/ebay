@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="tl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>eBay International Fee Calculator</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --blue-900:#0b2559;
+    --blue-700:#1548b8;
+    --blue-600:#2563eb;
+    --blue-100:#e8f0ff;
+    --blue-50:#f4f8ff;
+    --ink:#0f1b33;
+    --muted:#6b7794;
+    --line:#e4eaf6;
+    --white:#ffffff;
+    --shadow: 0 12px 30px -12px rgba(21,72,184,0.25);
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    font-family:'Plus Jakarta Sans', sans-serif;
+    background:
+      radial-gradient(1200px 500px at 10% -10%, var(--blue-100), transparent 60%),
+      radial-gradient(900px 500px at 110% 10%, #eef4ff, transparent 55%),
+      var(--white);
+    color:var(--ink);
+    min-height:100vh;
+    padding:32px 16px 64px;
+  }
+  .wrap{max-width:920px;margin:0 auto;}
+  header{margin-bottom:28px;}
+  .eyebrow{
+    display:inline-flex;align-items:center;gap:8px;
+    font-size:12.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;
+    color:var(--blue-700);
+    background:var(--blue-100);
+    padding:6px 12px;border-radius:999px;
+    margin-bottom:14px;
+  }
+  h1{
+    font-family:'Syne',sans-serif;
+    font-size:clamp(28px,4vw,40px);
+    font-weight:800;
+    margin:0 0 8px;
+    letter-spacing:-0.01em;
+    color:var(--blue-900);
+  }
+  header p{margin:0;color:var(--muted);font-size:15px;max-width:62ch;line-height:1.5;}
+
+  .modeswitch{
+    display:flex;gap:6px;background:var(--blue-50);border:1px solid var(--line);
+    padding:5px;border-radius:14px;margin:24px 0 20px;width:fit-content;
+  }
+  .modeswitch button{
+    border:none;background:transparent;padding:10px 18px;border-radius:10px;
+    font-family:'Plus Jakarta Sans',sans-serif;font-weight:700;font-size:14px;color:var(--muted);
+    cursor:pointer;transition:all .2s ease;
+  }
+  .modeswitch button.active{
+    background:var(--blue-900);color:#fff;box-shadow:var(--shadow);
+  }
+
+  .grid{display:grid;grid-template-columns:1.1fr 1fr;gap:20px;align-items:start;}
+  @media (max-width:760px){.grid{grid-template-columns:1fr;}}
+
+  .card{
+    background:var(--white);
+    border:1px solid var(--line);
+    border-radius:20px;
+    padding:24px;
+  }
+  .card h2{
+    font-family:'Syne',sans-serif;
+    font-size:17px;font-weight:700;margin:0 0 4px;color:var(--blue-900);
+  }
+  .card .sub{font-size:13px;color:var(--muted);margin:0 0 18px;}
+
+  .field{margin-bottom:16px;}
+  .field label{
+    display:flex;justify-content:space-between;align-items:center;
+    font-size:13px;font-weight:700;color:var(--ink);margin-bottom:6px;
+  }
+  .field label .edit-tag{
+    font-size:11px;font-weight:700;color:#0f9d58;background:#e6f7ee;
+    padding:2px 8px;border-radius:999px;
+  }
+  .inputwrap{position:relative;}
+  .inputwrap .prefix{
+    position:absolute;left:14px;top:50%;transform:translateY(-50%);
+    color:var(--muted);font-weight:600;font-size:14px;pointer-events:none;
+  }
+  .inputwrap .suffix{
+    position:absolute;right:14px;top:50%;transform:translateY(-50%);
+    color:var(--muted);font-weight:600;font-size:14px;pointer-events:none;
+  }
+  input[type=number]{
+    width:100%;
+    padding:12px 14px 12px 30px;
+    border:1.5px solid var(--line);
+    border-radius:12px;
+    font-family:'Plus Jakarta Sans',sans-serif;
+    font-size:15px;font-weight:600;color:var(--ink);
+    background:var(--blue-50);
+    outline:none;
+    transition:border-color .15s ease, background .15s ease;
+  }
+  input[type=number].pct{padding-left:14px;padding-right:34px;}
+  input[type=number]:focus{border-color:var(--blue-600);background:#fff;}
+  input[type=number]::-webkit-outer-spin-button,
+  input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;margin:0;}
+
+  /* Locked fee display list */
+  .locked-list{
+    border-top:1px dashed var(--line);
+    margin-top:6px;padding-top:14px;
+  }
+  .locked-row{
+    display:flex;justify-content:space-between;align-items:center;
+    padding:9px 0;font-size:13.5px;
+  }
+  .locked-row .name{color:var(--ink);font-weight:600;}
+  .locked-row .name .desc{display:block;font-weight:400;color:var(--muted);font-size:11.5px;margin-top:1px;}
+  .locked-row .val{
+    display:flex;align-items:center;gap:6px;
+    font-weight:700;color:var(--blue-700);
+    background:var(--blue-50);border:1px solid var(--line);
+    padding:4px 10px;border-radius:8px;font-size:13px;
+  }
+  .locked-row .val svg{width:12px;height:12px;opacity:.55;}
+
+  /* Results card */
+  .results{
+    background:linear-gradient(160deg, var(--blue-900), #123a86);
+    color:#fff;border:none;position:sticky;top:24px;
+  }
+  .results h2{color:#fff;}
+  .results .sub{color:#b7c6ef;}
+  .headline{
+    text-align:center;padding:18px 10px 22px;
+    border-bottom:1px solid rgba(255,255,255,0.15);
+    margin-bottom:8px;
+  }
+  .headline .label{font-size:12.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#9fb4e8;}
+  .headline .amount{
+    font-family:'Syne',sans-serif;font-size:36px;font-weight:800;margin:6px 0 0;
+    color:#fff;
+  }
+  .headline .amount.warn{color:#ffd479;}
+
+  .section-label{
+    font-size:11.5px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;
+    color:#8fa6de;margin:14px 0 4px;
+  }
+  .breakdown-row{
+    display:flex;justify-content:space-between;align-items:baseline;
+    font-size:13.5px;padding:6px 0;color:#dbe4f9;
+  }
+  .breakdown-row.total{
+    border-top:1px solid rgba(255,255,255,0.2);
+    margin-top:6px;padding-top:12px;
+    font-weight:800;font-size:15px;color:#fff;
+  }
+  .breakdown-row.total.final{
+    background:rgba(255,255,255,0.08);
+    margin:10px -10px -4px;
+    padding:12px 10px;
+    border-radius:12px;
+    border-top:none;
+  }
+  .breakdown-row .neg{color:#ffb4b4;}
+  .breakdown-row .name{color:#f1f5ff;font-weight:600;}
+  footer{margin-top:22px;font-size:12px;color:var(--muted);text-align:center;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <span class="eyebrow">Income Edge · Seller Tools</span>
+    <h1>eBay International Fee Calculator</h1>
+    <p>Naka-lock lahat ng fee % base sa aktwal na fee structure mo (Pet Supplies category, international seller, VAT 12%) — <b>ang Ad Rate lang ang pwede mong i-edit</b>, dahil ito lang ang kinokontrol mo mismo.</p>
+  </header>
+
+  <div class="modeswitch">
+    <button id="btnForward" class="active">Presyo → Kikitain</button>
+    <button id="btnReverse">Puhunan → Ipapresyo</button>
+  </div>
+
+  <div class="grid">
+    <!-- INPUT CARD -->
+    <div class="card">
+      <div id="forwardInputs">
+        <h2>Item Price</h2>
+        <p class="sub">Ang "Fees based on" amount — presyo ng item + shipping kung meron.</p>
+
+        <div class="field">
+          <label for="amount">Amount</label>
+          <div class="inputwrap">
+            <span class="prefix">$</span>
+            <input type="number" id="amount" step="0.01" value="21.29" min="0">
+          </div>
+        </div>
+      </div>
+
+      <div id="reverseInputs" style="display:none;">
+        <h2>Puhunan Mo (Dropshipping Cost)</h2>
+        <p class="sub">Kung magkano binili mo mismo ang item, at gusto mong kikita pa.</p>
+
+        <div class="field">
+          <label for="revCost">Cost / Puhunan</label>
+          <div class="inputwrap">
+            <span class="prefix">$</span>
+            <input type="number" id="revCost" step="0.01" value="6.10" min="0">
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="revProfit">Gustong Kita (Profit)</label>
+          <div class="inputwrap">
+            <span class="prefix">$</span>
+            <input type="number" id="revProfit" step="0.01" value="0" min="0">
+          </div>
+        </div>
+      </div>
+
+      <h2 style="margin-top:22px;">Category <span style="color:#0f9d58;font-weight:700;">✏️ editable</span></h2>
+      <p class="sub">Piliin ang category ng item — awtomatikong magpapalit ang Final Value Fee %.</p>
+
+      <div class="field">
+        <label for="categorySelect">Item Category</label>
+        <select id="categorySelect">
+          <option value="most">Most categories (clothing, electronics, home, Pet Supplies, atbp.)</option>
+          <option value="media">Books, Movies & TV, Music</option>
+          <option value="coins">Coins & Paper Money (except Bullion)</option>
+          <option value="bullion">Coins & Paper Money: Bullion</option>
+          <option value="collectibles">Collectibles: Comics, Trading Cards, Card Games</option>
+          <option value="jewelry">Jewelry & Watches</option>
+          <option value="bags">Women's Bags & Handbags</option>
+          <option value="watches">Watches, Parts & Accessories</option>
+          <option value="guitars">Guitars & Basses</option>
+          <option value="shoes">Athletic Shoes (Men's/Women's)</option>
+          <option value="heavy">Heavy Equipment / Food Trucks / Printing Presses</option>
+          <option value="nft">NFT categories</option>
+        </select>
+      </div>
+
+      <div class="locked-row" style="border-top:none;padding-top:0;">
+        <span class="name">Final Value Fee<span class="desc" id="fvfNote">Starting rate para sa napiling category</span></span>
+        <span class="val" id="fvfDisplay">13.6% ✏️</span>
+      </div>
+
+      <h2 style="margin-top:22px;">Ad Rate <span style="color:#0f9d58;font-weight:700;">✏️ editable</span></h2>
+      <p class="sub">Ito lang ang tanging % na kinokontrol mo — nasa Promoted Listings settings mo sa eBay.</p>
+
+      <div class="field">
+        <label for="adPct">Seller-selected ad rate</label>
+        <div class="inputwrap">
+          <input type="number" id="adPct" class="pct" step="0.1" value="13.0" min="0">
+          <span class="suffix">%</span>
+        </div>
+      </div>
+
+      <h2 style="margin-top:22px;">Naka-lock na Fees</h2>
+      <p class="sub">Fixed values ito ayon sa bansa mo (Philippines) — hindi na ito pwedeng baguhin dito.</p>
+
+      <div class="locked-list">
+        <div class="locked-row">
+          <span class="name">Final Value Fee (fixed)<span class="desc">$0.30 (≤$10) · $0.40 (&gt;$10) · $0 sa Athletic Shoes $150+</span></span>
+          <span class="val">per order 🔒</span>
+        </div>
+        <div class="locked-row">
+          <span class="name">International Fee<span class="desc">Philippines · Rest of APAC rate</span></span>
+          <span class="val">1.3% 🔒</span>
+        </div>
+        <div class="locked-row">
+          <span class="name">VAT<span class="desc">RA 12023 · Digital Services VAT</span></span>
+          <span class="val">12% 🔒</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- RESULTS CARD -->
+    <div class="card results">
+      <h2 id="resultsTitle">Net Proceeds</h2>
+      <p class="sub" id="resultsSub">Kikitain mo pagkatapos ng lahat ng fees, kasama ang ad fee.</p>
+
+      <div class="headline">
+        <div class="label" id="headlineLabel">Final na Matitira</div>
+        <div class="amount" id="headlineAmount">$0.00</div>
+      </div>
+
+      <div class="section-label">Order Fees</div>
+      <div id="orderFeesList"></div>
+
+      <div class="section-label">Ad Fee (Promoted Listings)</div>
+      <div id="adFeesList"></div>
+
+      <div class="breakdown-row total final" id="finalRow"></div>
+    </div>
+  </div>
+
+  <footer>Ginawa para sa Income Edge · Base sa aktwal na transaction breakdown ng eBay international/VAT seller account.</footer>
+</div>
+
+<script>
+const $ = id => document.getElementById(id);
+
+const INTL_PCT = 1.3;
+const VAT_PCT = 12;
+
+// Each category defines FVF as a set of brackets: {limit, rate} meaning
+// "rate% applies to the portion of the amount up to (and after the previous) limit".
+// limit: Infinity means "and everything above".
+const CATEGORIES = {
+  most:         { label:'Most categories',                 tiers:[{limit:7500, rate:13.6},{limit:Infinity, rate:2.35}] },
+  media:        { label:'Books, Movies & TV, Music',       tiers:[{limit:7500, rate:15.3},{limit:Infinity, rate:2.35}] },
+  coins:        { label:'Coins & Paper Money',              tiers:[{limit:7500, rate:13.25},{limit:Infinity, rate:2.35}] },
+  bullion:      { label:'Bullion',                          tiers:[{limit:7500, rate:13.6},{limit:Infinity, rate:7}] },
+  collectibles: { label:'Collectibles',                     tiers:[{limit:7500, rate:13.25},{limit:Infinity, rate:2.35}] },
+  jewelry:      { label:'Jewelry & Watches',                tiers:[{limit:5000, rate:15},{limit:Infinity, rate:9}] },
+  bags:         { label:"Women's Bags & Handbags",          tiers:[{limit:2000, rate:15},{limit:Infinity, rate:9}] },
+  watches:      { label:'Watches, Parts & Accessories',     tiers:[{limit:1000, rate:15},{limit:7500, rate:6.5},{limit:Infinity, rate:3}] },
+  guitars:      { label:'Guitars & Basses',                 tiers:[{limit:7500, rate:6.7},{limit:Infinity, rate:2.35}] },
+  heavy:        { label:'Heavy Equipment / Food Trucks',    tiers:[{limit:15000, rate:3},{limit:Infinity, rate:0.5}] },
+  nft:          { label:'NFT categories',                   tiers:[{limit:Infinity, rate:5}] },
+  shoes:        { label:'Athletic Shoes', special:'shoes' } // handled separately below
+};
+
+let currentCategory = 'most';
+
+// Computes the fee amount for a set of cumulative brackets (like a tax bracket).
+function tieredFee(amount, tiers){
+  let fee = 0, prevLimit = 0;
+  for(const t of tiers){
+    const portion = Math.max(0, Math.min(amount, t.limit) - prevLimit);
+    fee += portion * t.rate/100;
+    prevLimit = t.limit;
+    if(amount <= t.limit) break;
+  }
+  return fee;
+}
+
+// Returns {fvfAmt, fixedFee, note} for the given amount + category.
+function computeFVF(amount, categoryKey){
+  const cat = CATEGORIES[categoryKey] || CATEGORIES.most;
+
+  if(cat.special === 'shoes'){
+    if(amount >= 150){
+      return { fvfAmt: amount * 0.08, fixedFee: 0, note: '8% (walang per-order fee sa $150+)' };
+    }
+    const fixedFee = amount <= 10 ? 0.30 : 0.40;
+    return { fvfAmt: amount * 0.136, fixedFee, note: '13.6% (mas mababa sa $150)' };
+  }
+
+  const fvfAmt = tieredFee(amount, cat.tiers);
+  const fixedFee = amount <= 10 ? 0.30 : 0.40;
+  return { fvfAmt, fixedFee, note: describeTiers(cat.tiers) };
+}
+
+function describeTiers(tiers){
+  if(tiers.length === 1) return `${tiers[0].rate}% flat`;
+  let prev = 0;
+  const parts = tiers.map(t=>{
+    const part = t.limit === Infinity
+      ? `${t.rate}% sa lagpas $${prev.toLocaleString()}`
+      : `${t.rate}% hanggang $${t.limit.toLocaleString()}`;
+    prev = t.limit;
+    return part;
+  });
+  return parts.join(', ');
+}
+
+const categorySelect = $('categorySelect');
+categorySelect.addEventListener('change', () => {
+  currentCategory = categorySelect.value;
+  updateFvfDisplay();
+  calculate();
+});
+
+function updateFvfDisplay(amountForPreview){
+  const amt = amountForPreview !== undefined ? amountForPreview : (mode === 'forward' ? (parseFloat($('amount').value)||0) : lastSolvedAmount);
+  const { fvfAmt, note } = computeFVF(amt || 0, currentCategory);
+  const effectivePct = amt > 0 ? (fvfAmt/amt*100) : 0;
+  $('fvfDisplay').textContent = `${effectivePct.toFixed(2)}% ✏️`;
+  $('fvfNote').textContent = note;
+}
+
+function money(n){
+  const sign = n < 0 ? '-' : '';
+  return sign + '$' + Math.abs(n).toFixed(2);
+}
+
+function renderRows(container, rows){
+  container.innerHTML = rows.map(r=>{
+    const cls = r.type==='neg' ? 'neg' : r.type==='pos' ? 'pos' : '';
+    const totalCls = r.total ? ' total' : '';
+    return `<div class="breakdown-row${totalCls}">
+      <span class="name">${r.label}</span>
+      <span class="${cls}">${r.value}</span>
+    </div>`;
+  }).join('');
+}
+
+let mode = 'forward';
+let lastSolvedAmount = 0;
+const btnForward = $('btnForward');
+const btnReverse = $('btnReverse');
+const forwardInputs = $('forwardInputs');
+const reverseInputs = $('reverseInputs');
+
+btnForward.onclick = () => setMode('forward');
+btnReverse.onclick = () => setMode('reverse');
+
+function setMode(m){
+  mode = m;
+  btnForward.classList.toggle('active', m==='forward');
+  btnReverse.classList.toggle('active', m==='reverse');
+  forwardInputs.style.display = m==='forward' ? 'block' : 'none';
+  reverseInputs.style.display = m==='reverse' ? 'block' : 'none';
+  $('resultsTitle').textContent = m==='forward' ? 'Net Proceeds' : 'Presyong Ilalagay sa eBay';
+  $('resultsSub').textContent = m==='forward'
+    ? 'Kikitain mo pagkatapos ng lahat ng fees, kasama ang ad fee.'
+    : 'Ito ang dapat mong i-list sa eBay para bumalik ang puhunan mo + kita, pagkatapos ng lahat ng fees.';
+  $('headlineLabel').textContent = m==='forward' ? 'Final na Matitira' : 'Ipa-presyo Mo';
+  calculate();
+}
+
+// Given a listing price (amount) and ad %, compute the full breakdown and final net.
+function computeFromAmount(amount, adPct){
+  const { fvfAmt, fixedFee } = computeFVF(amount, currentCategory);
+  const intlAmt = amount * INTL_PCT/100;
+  const feesBeforeVat = fvfAmt + intlAmt + fixedFee;
+  const vatOnFees = feesBeforeVat * VAT_PCT/100;
+  const totalOrderFees = feesBeforeVat + vatOnFees;
+  const netProceeds = amount - totalOrderFees;
+
+  const adAmt = amount * adPct/100;
+  const vatOnAd = adAmt * VAT_PCT/100;
+  const totalAdFee = adAmt + vatOnAd;
+
+  const finalNet = netProceeds - totalAdFee;
+
+  return {fvfAmt, fixedFee, intlAmt, vatOnFees, netProceeds, adAmt, vatOnAd, totalAdFee, finalNet};
+}
+
+// Solve for the listing price needed so finalNet == target (cost + profit).
+// Uses binary search since tiered brackets + the shoe threshold make this non-linear.
+function solveAmountForTarget(target, adPct){
+  if(target <= 0) return 0;
+
+  let hi = Math.max(target * 2, 100);
+  let guard = 0;
+  while(computeFromAmount(hi, adPct).finalNet < target && guard < 60){
+    hi *= 2;
+    guard++;
+  }
+  if(guard >= 60) return null; // fees exceed 100%, can't reach target at any price
+
+  let lo = 0;
+  for(let i=0; i<100; i++){
+    const mid = (lo + hi) / 2;
+    const net = computeFromAmount(mid, adPct).finalNet;
+    if(net < target) lo = mid; else hi = mid;
+  }
+  return (lo + hi) / 2;
+}
+
+function renderAllFrom(amount, adPct){
+  const r = computeFromAmount(amount, adPct);
+  lastSolvedAmount = amount;
+  updateFvfDisplay(amount);
+
+  $('headlineAmount').textContent = mode === 'forward' ? money(r.finalNet) : money(amount);
+  $('headlineAmount').classList.toggle('warn', r.finalNet < 0);
+
+  renderRows($('orderFeesList'), [
+    {label:'Amount', value: money(amount)},
+    {label:'Final Value Fee', value: money(-r.fvfAmt), type:'neg'},
+    {label:`International Fee (${INTL_PCT}%)`, value: money(-r.intlAmt), type:'neg'},
+    {label:'Final Value Fee (fixed)', value: money(-r.fixedFee), type:'neg'},
+    {label:`VAT (${VAT_PCT}%)`, value: money(-r.vatOnFees), type:'neg'},
+    {label:'Net Proceeds', value: money(r.netProceeds), total:true},
+  ]);
+
+  renderRows($('adFeesList'), [
+    {label:`Ad Fee (${adPct}%)`, value: money(-r.adAmt), type:'neg'},
+    {label:`VAT (${VAT_PCT}%)`, value: money(-r.vatOnAd), type:'neg'},
+    {label:'Total Ad Fee', value: money(-r.totalAdFee), total:true, type:'neg'},
+  ]);
+
+  if(mode === 'forward'){
+    $('finalRow').innerHTML = `
+      <span class="name">Final Kita (after ad fee)</span>
+      <span>${money(r.finalNet)}</span>
+    `;
+  } else {
+    $('finalRow').innerHTML = `
+      <span class="name">I-list mo sa presyong</span>
+      <span>${money(amount)}</span>
+    `;
+  }
+}
+
+function calculate(){
+  const adPct = parseFloat($('adPct').value)||0;
+
+  if(mode === 'forward'){
+    const amount = parseFloat($('amount').value)||0;
+    renderAllFrom(amount, adPct);
+  } else {
+    const cost = parseFloat($('revCost').value)||0;
+    const profit = parseFloat($('revProfit').value)||0;
+    const target = cost + profit;
+    const amount = solveAmountForTarget(target, adPct);
+
+    if(amount === null){
+      $('headlineAmount').textContent = '—';
+      $('headlineAmount').classList.add('warn');
+      renderRows($('orderFeesList'), [{label:'Ad rate masyadong mataas', value:'imposible', type:'neg'}]);
+      renderRows($('adFeesList'), []);
+      $('finalRow').innerHTML = `<span class="name">Ayusin ang Ad Rate</span><span>—</span>`;
+      return;
+    }
+    renderAllFrom(amount, adPct);
+  }
+}
+
+['amount','adPct','revCost','revProfit'].forEach(id => $(id).addEventListener('input', calculate));
+updateFvfDisplay(21.29);
+calculate();
+</script>
+</body>
+</html>
