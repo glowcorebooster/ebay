@@ -1,0 +1,1256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+<title>Zayne Pro Dropshipping</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<style>
+  :root{
+    --bg:#0B1220;
+    --panel:#121B2E;
+    --panel-2:#0F1A2E;
+    --border:#27344A;
+    --text:#E9EEF6;
+    --muted:#8C9AB3;
+    --red:#DC2626;
+    --red-dim:#7F1D1D;
+    --blue:#2563EB;
+    --green:#16A34A;
+    --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0; background:var(--bg); color:var(--text);
+    font-family:var(--sans); -webkit-font-smoothing:antialiased;
+    padding-bottom:60px;
+  }
+  header{
+    position:sticky; top:0; z-index:20;
+    background:linear-gradient(180deg, var(--bg) 70%, transparent);
+    backdrop-filter:blur(6px);
+    padding:14px 16px 10px;
+    border-bottom:1px solid var(--border);
+  }
+  .brand{display:flex; align-items:center; gap:10px;}
+  .flagbar{display:flex; width:22px; height:16px; border-radius:3px; overflow:hidden; flex-shrink:0;
+    background:repeating-linear-gradient(180deg,#B22234 0 2px,#fff 2px 4px); box-shadow:0 0 0 1px var(--border);}
+  h1{font-size:16px; margin:0; letter-spacing:.2px;}
+  .sub{font-size:12px; color:var(--muted); margin-top:2px;}
+
+  .card{
+    background:var(--panel); border:1px solid var(--border); border-radius:12px;
+    padding:14px; margin:12px 16px;
+  }
+  .row{display:flex; flex-wrap:wrap; gap:10px;}
+  label{display:block; font-size:11px; color:var(--muted); margin-bottom:5px; text-transform:uppercase; letter-spacing:.5px;}
+  input[type=text], input[type=password], select{
+    width:100%; background:var(--panel-2); border:1px solid var(--border); color:var(--text);
+    padding:10px 11px; border-radius:8px; font-size:14px; font-family:var(--mono);
+  }
+  input::placeholder{color:#5B6B85;}
+  .field{flex:1 1 160px;}
+  .checkrow{display:flex; align-items:center; gap:7px; font-size:13px; color:var(--text); margin-top:4px;}
+  .checkrow input{width:16px; height:16px;}
+
+  button{
+    border:none; cursor:pointer; font-family:var(--sans); font-weight:600;
+    padding:11px 16px; border-radius:8px; font-size:14px;
+  }
+  .btn-primary{background:var(--red); color:#fff;}
+  .btn-primary:disabled{background:#4a2424; color:#9a7a7a; cursor:not-allowed;}
+  .btn-secondary{background:var(--panel-2); color:var(--text); border:1px solid var(--border);}
+  .btn-ghost{background:transparent; color:var(--blue); padding:6px 4px; font-size:13px;}
+
+  .status{font-size:12.5px; margin-top:10px; padding:8px 10px; border-radius:8px; display:none;}
+  .status.show{display:block;}
+  .status.ok{background:rgba(22,163,74,.12); color:#4ADE80; border:1px solid rgba(22,163,74,.3);}
+  .status.err{background:rgba(220,38,38,.12); color:#FCA5A5; border:1px solid rgba(220,38,38,.3);}
+  .status.info{background:rgba(37,99,235,.12); color:#93C5FD; border:1px solid rgba(37,99,235,.3);}
+
+  details{margin:12px 16px;}
+  summary{cursor:pointer; font-size:13px; color:var(--muted); padding:4px 0;}
+
+  #filters{display:none;}
+  #resultsBar{display:none; padding:0 16px; font-size:12.5px; color:var(--muted); display:flex; justify-content:space-between; align-items:center; margin-top:4px;}
+
+  .grid{
+    display:grid; grid-template-columns:repeat(2, 1fr); gap:10px; padding:10px 16px;
+  }
+  @media(min-width:640px){ .grid{grid-template-columns:repeat(3,1fr);} }
+  @media(min-width:960px){ .grid{grid-template-columns:repeat(5,1fr);} }
+
+  .pcard{
+    background:var(--panel); border:1px solid var(--border); border-radius:10px; overflow:hidden;
+    display:flex; flex-direction:column; cursor:pointer; transition:border-color .15s, transform .15s;
+  }
+  .pcard:active{transform:scale(.98);}
+  .pcard:hover{border-color:var(--blue);}
+  .pcard img{width:100%; aspect-ratio:1/1; object-fit:cover; background:#1a2438; display:block;}
+  .pbody{padding:8px 9px 10px;}
+  .pname{font-size:12.5px; line-height:1.3; height:32px; overflow:hidden; margin-bottom:6px;}
+  .pmeta{display:flex; justify-content:space-between; align-items:center;}
+  .price{font-family:var(--mono); font-weight:700; font-size:14px; color:#fff;}
+  .badge{
+    font-size:9.5px; font-weight:700; color:#fff; background:var(--blue);
+    padding:2px 5px; border-radius:4px; display:inline-flex; align-items:center; gap:3px;
+  }
+  .ushow{display:flex; align-items:center; gap:4px; font-size:10px; color:var(--muted); margin-top:5px;}
+  .sku{font-family:var(--mono); font-size:9.5px; color:var(--muted); margin-top:4px; word-break:break-all;}
+  .tapHint{font-size:10px; color:var(--blue); margin-top:6px; text-align:center; border:1px solid var(--border); border-radius:6px; padding:5px; background:var(--panel-2);}
+
+  .pagebar{display:flex; justify-content:center; align-items:center; gap:12px; padding:14px 16px; font-size:13px;}
+  .empty{padding:30px 16px; text-align:center; color:var(--muted); font-size:13.5px;}
+  .spinner{border:2px solid var(--border); border-top-color:var(--red); border-radius:50%; width:16px; height:16px; animation:spin .7s linear infinite; display:inline-block; vertical-align:-3px; margin-right:6px;}
+  @keyframes spin{to{transform:rotate(360deg);}}
+
+  /* ---- in-page product modal: never navigates, URL never changes ---- */
+  #overlay{
+    position:fixed; inset:0; background:rgba(5,9,16,.78); z-index:100;
+    display:none; align-items:flex-end; justify-content:center;
+  }
+  #overlay.show{display:flex;}
+  @media(min-width:640px){ #overlay{align-items:center;} }
+  #modal{
+    background:var(--panel); width:100%; max-width:520px; max-height:92vh; overflow-y:auto;
+    border-radius:16px 16px 0 0; border:1px solid var(--border); border-bottom:none;
+    position:relative; animation:slideUp .2s ease-out;
+  }
+  @media(min-width:640px){ #modal{border-radius:16px; border-bottom:1px solid var(--border);} }
+  @keyframes slideUp{from{transform:translateY(24px); opacity:0;} to{transform:translateY(0); opacity:1;}}
+  #modalClose{
+    position:sticky; top:10px; float:right; margin:0 10px 0 0; z-index:5;
+    width:30px; height:30px; border-radius:50%; background:rgba(11,18,32,.85);
+    color:#fff; font-size:16px; line-height:30px; text-align:center; padding:0;
+  }
+  #modalGallery{display:flex; gap:6px; overflow-x:auto; padding:12px 12px 0; scroll-snap-type:x mandatory;}
+  #modalGallery img{width:120px; height:120px; object-fit:cover; border-radius:8px; flex-shrink:0; scroll-snap-align:start; background:#1a2438;}
+  #modalBody{padding:14px 16px 24px; clear:both;}
+  #modalTitle{font-size:15px; font-weight:600; line-height:1.4; margin-bottom:8px;}
+  #modalPrice{font-family:var(--mono); font-size:20px; font-weight:700; color:#fff; margin-bottom:10px;}
+  .modalRow{display:flex; justify-content:space-between; font-size:12.5px; padding:7px 0; border-bottom:1px solid var(--border); color:var(--muted);}
+  .modalRow b{color:var(--text); font-weight:500;}
+  #variantList{margin-top:10px;}
+  .variant{
+    display:flex; justify-content:space-between; align-items:center; font-size:12px;
+    padding:8px 10px; background:var(--panel-2); border-radius:8px; margin-bottom:6px; border:1px solid var(--border);
+  }
+  .variant .vname{flex:1; padding-right:8px;}
+  .variant .vprice{font-family:var(--mono); color:#fff;}
+  #modalDesc{
+    margin-top:14px; font-size:12.5px; line-height:1.6; color:var(--muted);
+    max-height:260px; overflow-y:auto; padding:10px; background:var(--panel-2);
+    border-radius:8px; border:1px solid var(--border);
+  }
+  #modalDesc img{max-width:100%; height:auto; border-radius:6px; margin:6px 0;}
+  #modalLoading{padding:60px 16px; text-align:center; color:var(--muted); font-size:13px;}
+  #copySkuBtn{width:100%; margin-top:14px;}
+
+  /* ---- Calculator styles ---- */
+  #calcTab{ display:none; padding:16px; }
+  .calc-wrap{ max-width:920px; margin:0 auto; }
+  .calc-eyebrow{
+    display:inline-flex;align-items:center;gap:8px;
+    font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;
+    color:#93C5FD; background:rgba(37,99,235,.15);
+    padding:5px 11px;border-radius:999px; margin-bottom:12px;
+  }
+  .calc-h1{
+    font-size:clamp(20px,3vw,28px); font-weight:800; margin:0 0 6px;
+    color:#fff; letter-spacing:-0.01em;
+  }
+  .calc-desc{ margin:0 0 16px; color:var(--muted); font-size:13px; line-height:1.5; }
+  .calc-modeswitch{
+    display:flex;gap:5px;background:var(--panel-2);border:1px solid var(--border);
+    padding:4px;border-radius:12px;margin-bottom:16px;width:fit-content;
+  }
+  .calc-modeswitch button{
+    border:none;background:transparent;padding:9px 16px;border-radius:9px;
+    font-family:var(--sans);font-weight:600;font-size:13px;color:var(--muted);
+    cursor:pointer;transition:all .2s;
+  }
+  .calc-modeswitch button.active{ background:var(--red); color:#fff; }
+  .calc-grid{ display:grid; grid-template-columns:1.1fr 1fr; gap:16px; align-items:start; }
+  @media(max-width:680px){ .calc-grid{ grid-template-columns:1fr; } }
+  .calc-card{
+    background:var(--panel); border:1px solid var(--border); border-radius:16px; padding:20px;
+  }
+  .calc-card h2{ font-size:15px; font-weight:700; margin:0 0 3px; color:var(--text); }
+  .calc-card .csub{ font-size:12px; color:var(--muted); margin:0 0 14px; }
+  .cfield{ margin-bottom:14px; }
+  .cfield label{
+    display:flex;justify-content:space-between;align-items:center;
+    font-size:12px;font-weight:700;color:var(--text);margin-bottom:5px;
+  }
+  .cfield label .edit-tag{
+    font-size:10px;font-weight:700;color:#4ADE80;background:rgba(22,163,74,.15);
+    padding:2px 7px;border-radius:999px;
+  }
+  .cinputwrap{ position:relative; }
+  .cinputwrap .cpfx{
+    position:absolute;left:12px;top:50%;transform:translateY(-50%);
+    color:var(--muted);font-weight:600;font-size:13px;pointer-events:none;
+  }
+  .cinputwrap .csfx{
+    position:absolute;right:12px;top:50%;transform:translateY(-50%);
+    color:var(--muted);font-weight:600;font-size:13px;pointer-events:none;
+  }
+  .cinput{
+    width:100%; padding:11px 12px 11px 28px;
+    border:1.5px solid var(--border); border-radius:10px;
+    font-family:var(--mono); font-size:14px; font-weight:600;
+    color:var(--text); background:var(--panel-2); outline:none;
+    transition:border-color .15s;
+  }
+  .cinput.pct{ padding-left:12px; padding-right:32px; }
+  .cinput:focus{ border-color:var(--blue); }
+  .cinput::-webkit-outer-spin-button,.cinput::-webkit-inner-spin-button{-webkit-appearance:none;margin:0;}
+  .clocked-list{ border-top:1px dashed var(--border); margin-top:6px; padding-top:12px; }
+  .clocked-row{
+    display:flex;justify-content:space-between;align-items:center;
+    padding:8px 0;font-size:12.5px;
+  }
+  .clocked-row .cname{ color:var(--text);font-weight:600; }
+  .clocked-row .cname .cdesc{ display:block;font-weight:400;color:var(--muted);font-size:11px;margin-top:1px; }
+  .clocked-row .cval{
+    display:flex;align-items:center;gap:5px;
+    font-weight:700;color:#93C5FD;
+    background:rgba(37,99,235,.12);border:1px solid var(--border);
+    padding:3px 9px;border-radius:7px;font-size:12px;
+  }
+  .cselect{
+    width:100%;background:var(--panel-2);border:1.5px solid var(--border);color:var(--text);
+    padding:10px 11px;border-radius:10px;font-size:13px;font-family:var(--sans);
+  }
+  /* Results card */
+  .calc-results{
+    background:linear-gradient(160deg,#0f2a6e,#0b1a4a);
+    border-color:rgba(37,99,235,.3);position:sticky;top:70px;
+  }
+  .calc-results h2{ color:#fff; }
+  .calc-results .csub{ color:#8fa6de; }
+  .cheadline{
+    text-align:center;padding:16px 10px 20px;
+    border-bottom:1px solid rgba(255,255,255,.12);margin-bottom:8px;
+  }
+  .cheadline .clabel{ font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#8fa6de; }
+  .cheadline .camount{ font-size:32px;font-weight:800;margin:5px 0 0;color:#fff; font-family:var(--mono); }
+  .cheadline .camount.warn{ color:#ffd479; }
+  .csec-label{
+    font-size:11px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;
+    color:#8fa6de;margin:12px 0 3px;
+  }
+  .cbrow{
+    display:flex;justify-content:space-between;align-items:baseline;
+    font-size:13px;padding:5px 0;color:#dbe4f9;
+  }
+  .cbrow.ctotal{
+    border-top:1px solid rgba(255,255,255,.15);
+    margin-top:5px;padding-top:10px;font-weight:800;font-size:14px;color:#fff;
+  }
+  .cbrow.cfinal{
+    background:rgba(255,255,255,.07);margin:8px -8px -4px;
+    padding:11px 8px;border-radius:10px;border-top:none;
+  }
+  .cbrow .cneg{ color:#ffb4b4; }
+  .cbrow .cname2{ color:#f1f5ff;font-weight:600; }
+  .calc-footer{ margin-top:16px;font-size:11px;color:var(--muted);text-align:center; }
+
+  /* ---- Tab nav ---- */
+  .tab-nav{
+    display:flex; gap:0; padding:0 16px; margin-top:10px; border-bottom:1px solid var(--border);
+  }
+  .tab-btn{
+    background:transparent; color:var(--muted); border:none; border-bottom:2px solid transparent;
+    padding:9px 16px; font-size:13px; font-weight:600; cursor:pointer; border-radius:0;
+    transition:color .15s, border-color .15s;
+  }
+  .tab-btn.active{ color:var(--text); border-bottom-color:var(--red); }
+  .tab-btn .tab-count{
+    display:inline-flex; align-items:center; justify-content:center;
+    background:var(--red); color:#fff; font-size:9px; font-weight:700;
+    width:16px; height:16px; border-radius:50%; margin-left:5px;
+    opacity:0; transition:opacity .2s;
+  }
+  .tab-btn .tab-count.has-items{ opacity:1; }
+
+  /* ---- List button on product card ---- */
+  .list-btn{
+    width:100%; margin-top:6px; padding:7px 10px; font-size:11.5px; font-weight:700;
+    border-radius:6px; border:none; cursor:pointer; font-family:var(--sans);
+    transition:background .15s, color .15s;
+  }
+  .list-btn.unlisted{ background:rgba(37,99,235,.15); color:#93C5FD; }
+  .list-btn.listed{ background:rgba(22,163,74,.15); color:#4ADE80; }
+
+  /* ---- Listed tab content ---- */
+  #listedTab{ display:none; padding:10px 16px; }
+  #listedEmpty{ padding:30px 16px; text-align:center; color:var(--muted); font-size:13.5px; }
+  #listedGrid{
+    display:grid;
+    grid-template-columns: repeat(auto-fill, minmax(155px, 1fr));
+    gap:10px;
+  }
+  .listed-card{
+    background:var(--panel); border:1px solid var(--border); border-radius:12px;
+    overflow:hidden; cursor:pointer; transition:border-color .15s; position:relative;
+  }
+  .listed-card:active{ border-color:var(--blue); }
+  .listed-card-img{
+    width:100%; aspect-ratio:1/1; object-fit:cover; background:#1a2438; display:block;
+  }
+  .listed-card-body{ padding:8px 9px 10px; }
+  .listed-card-name{
+    font-size:11.5px; line-height:1.35; color:var(--text);
+    display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;
+  }
+  .listed-card-price{
+    font-family:var(--mono); font-size:13px; font-weight:700; color:#fff; margin-top:4px;
+  }
+  .listed-card-sku{ font-size:9.5px; color:var(--muted); margin-top:2px; word-break:break-all; }
+  .listed-card-footer{
+    display:flex; align-items:center; justify-content:space-between;
+    padding:0 9px 9px; gap:6px;
+  }
+  .listed-cj-hint{ font-size:9.5px; color:var(--blue); }
+  .unlist-btn{
+    flex-shrink:0; background:rgba(220,38,38,.15); color:#FCA5A5; border:none;
+    padding:5px 9px; border-radius:6px; font-size:11px; font-weight:700; cursor:pointer; font-family:var(--sans);
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="brand">
+    <div class="flagbar"></div>
+    <div>
+      <h1>Zayne Pro Dropshipping</h1>
+      <div class="sub">CJ sourcing tool — shows only products with U.S. warehouse stock</div>
+    </div>
+  </div>
+</header>
+
+<div class="card" id="connectCard">
+  <div class="row">
+    <div class="field">
+      <label>CJ API Key</label>
+      <input type="password" id="apiKey" placeholder="from CJ dashboard → My CJ → API Key">
+    </div>
+  </div>
+  <details>
+    <summary>Advanced — CORS proxy URL (only needed if direct connect fails)</summary>
+    <div class="field" style="margin-top:8px;">
+      <input type="text" id="proxyUrl" placeholder="e.g. https://your-worker.workers.dev (leave blank to try direct)">
+    </div>
+  </details>
+  <div class="row" style="margin-top:10px;">
+    <button class="btn-primary" id="connectBtn" style="flex:1;">Connect</button>
+  </div>
+  <div class="status" id="connectStatus"></div>
+  <div id="savedKeyRow" style="display:none; margin-top:10px; align-items:center; justify-content:space-between; font-size:12px; color:var(--muted);">
+    <span>🔒 API key saved on this device</span>
+    <button class="btn-ghost" id="unlinkBtn" style="color:var(--red);">Unlink &amp; forget key</button>
+  </div>
+</div>
+
+<div class="card" id="filters">
+  <div class="row">
+    <div class="field" style="flex:2 1 200px;">
+      <label>Keyword</label>
+      <input type="text" id="keyword" placeholder="e.g. led lamp, phone case">
+    </div>
+    <div class="field">
+      <label>Sort by</label>
+      <select id="orderBy">
+        <option value="0">Best match</option>
+        <option value="2">Price</option>
+        <option value="3">Newest</option>
+        <option value="4">Inventory</option>
+        <option value="1">Listing count</option>
+      </select>
+    </div>
+    <div class="field">
+      <label>Direction</label>
+      <select id="sortDir">
+        <option value="desc">High → Low</option>
+        <option value="asc">Low → High</option>
+      </select>
+    </div>
+  </div>
+  <div class="row" style="margin-top:6px;">
+    <label class="checkrow"><input type="checkbox" id="freeShipOnly"> Free shipping only</label>
+    <label class="checkrow"><input type="checkbox" id="inStockOnly" checked> In stock only</label>
+  </div>
+  <div class="row" style="margin-top:10px;">
+    <button class="btn-primary" id="searchBtn" style="flex:1;">Load U.S. Products</button>
+  </div>
+  <div class="status" id="searchStatus"></div>
+</div>
+
+<div id="resultsBar">
+  <span id="resultsCount"></span>
+  <button class="btn-ghost" id="disconnectBtn">Switch account</button>
+</div>
+
+<!-- Tab nav -->
+<div class="tab-nav">
+  <button class="tab-btn active" id="tabProducts" onclick="switchTab('products')">
+    Products
+  </button>
+  <button class="tab-btn" id="tabListed" onclick="switchTab('listed')">
+    Listed
+    <span class="tab-count" id="listedCount">0</span>
+  </button>
+  <button class="tab-btn" id="tabCalc" onclick="switchTab('calc')">
+    Calculator
+  </button>
+</div>
+
+<!-- Products tab -->
+<div id="productsTab">
+  <div class="grid" id="grid"></div>
+  <div class="pagebar" id="pagebar"></div>
+</div>
+
+<!-- Listed tab -->
+<div id="listedTab">
+  <div id="listedEmpty">No listed products yet. Tap "List" on any product to add it here.</div>
+  <div id="listedGrid"></div>
+</div>
+
+<!-- Calculator tab -->
+<div id="calcTab">
+  <div class="calc-wrap">
+    <span class="calc-eyebrow">Zayne Pro · Seller Tools</span>
+    <h1 class="calc-h1">eBay International Fee Calculator</h1>
+    <p class="calc-desc">Naka-lock lahat ng fee % base sa aktwal na fee structure (international seller, VAT 12%) — <b>ang Ad Rate lang ang pwede mong i-edit</b>.</p>
+
+    <div class="calc-modeswitch">
+      <button id="cBtnForward" class="active">Presyo → Kikitain</button>
+      <button id="cBtnReverse">Puhunan → Ipapresyo</button>
+    </div>
+
+    <div class="calc-grid">
+      <!-- Input card -->
+      <div class="calc-card">
+        <div id="cForwardInputs">
+          <h2>Item Price</h2>
+          <p class="csub">Ang "Fees based on" amount — presyo ng item + shipping kung meron.</p>
+          <div class="cfield">
+            <label for="cAmount">Amount</label>
+            <div class="cinputwrap"><span class="cpfx">$</span>
+              <input type="number" id="cAmount" class="cinput" step="0.01" value="21.29" min="0">
+            </div>
+          </div>
+        </div>
+        <div id="cReverseInputs" style="display:none;">
+          <h2>Puhunan Mo (Dropshipping Cost)</h2>
+          <p class="csub">Kung magkano binili mo mismo ang item, at gusto mong kumita pa.</p>
+          <div class="cfield">
+            <label for="cRevCost">Cost / Puhunan</label>
+            <div class="cinputwrap"><span class="cpfx">$</span>
+              <input type="number" id="cRevCost" class="cinput" step="0.01" value="6.10" min="0">
+            </div>
+          </div>
+          <div class="cfield">
+            <label for="cRevProfit">Gustong Kita (Profit)</label>
+            <div class="cinputwrap"><span class="cpfx">$</span>
+              <input type="number" id="cRevProfit" class="cinput" step="0.01" value="0" min="0">
+            </div>
+          </div>
+        </div>
+
+        <h2 style="margin-top:18px;">Category <span class="edit-tag">✏️ editable</span></h2>
+        <p class="csub">Piliin ang category ng item.</p>
+        <div class="cfield">
+          <label for="cCategorySelect">Item Category</label>
+          <select id="cCategorySelect" class="cselect">
+            <option value="most">Most categories (clothing, electronics, home, Pet Supplies, atbp.)</option>
+            <option value="media">Books, Movies & TV, Music</option>
+            <option value="coins">Coins & Paper Money (except Bullion)</option>
+            <option value="bullion">Coins & Paper Money: Bullion</option>
+            <option value="collectibles">Collectibles: Comics, Trading Cards, Card Games</option>
+            <option value="jewelry">Jewelry & Watches</option>
+            <option value="bags">Women's Bags & Handbags</option>
+            <option value="watches">Watches, Parts & Accessories</option>
+            <option value="guitars">Guitars & Basses</option>
+            <option value="shoes">Athletic Shoes (Men's/Women's)</option>
+            <option value="heavy">Heavy Equipment / Food Trucks / Printing Presses</option>
+            <option value="nft">NFT categories</option>
+          </select>
+        </div>
+        <div class="clocked-row" style="border-top:none;padding-top:0;">
+          <span class="cname">Final Value Fee<span class="cdesc" id="cFvfNote">Starting rate para sa napiling category</span></span>
+          <span class="cval" id="cFvfDisplay">13.6% ✏️</span>
+        </div>
+
+        <h2 style="margin-top:18px;">Ad Rate <span class="edit-tag">✏️ editable</span></h2>
+        <p class="csub">Ito lang ang % na kinokontrol mo — Promoted Listings settings sa eBay.</p>
+        <div class="cfield">
+          <label for="cAdPct">Seller-selected ad rate</label>
+          <div class="cinputwrap">
+            <input type="number" id="cAdPct" class="cinput pct" step="0.1" value="13.0" min="0">
+            <span class="csfx">%</span>
+          </div>
+        </div>
+
+        <h2 style="margin-top:18px;">Naka-lock na Fees</h2>
+        <p class="csub">Fixed values base sa Philippines seller account.</p>
+        <div class="clocked-list">
+          <div class="clocked-row">
+            <span class="cname">Final Value Fee (fixed)<span class="cdesc">$0.30 (≤$10) · $0.40 (&gt;$10) · $0 sa Athletic Shoes $150+</span></span>
+            <span class="cval">per order 🔒</span>
+          </div>
+          <div class="clocked-row">
+            <span class="cname">International Fee<span class="cdesc">Philippines · Rest of APAC rate</span></span>
+            <span class="cval">1.3% 🔒</span>
+          </div>
+          <div class="clocked-row">
+            <span class="cname">VAT<span class="cdesc">RA 12023 · Digital Services VAT</span></span>
+            <span class="cval">12% 🔒</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Results card -->
+      <div class="calc-card calc-results">
+        <h2 id="cResultsTitle">Net Proceeds</h2>
+        <p class="csub" id="cResultsSub">Kikitain mo pagkatapos ng lahat ng fees, kasama ang ad fee.</p>
+        <div class="cheadline">
+          <div class="clabel" id="cHeadlineLabel">Final na Matitira</div>
+          <div class="camount" id="cHeadlineAmount">$0.00</div>
+        </div>
+        <div class="csec-label">Order Fees</div>
+        <div id="cOrderFeesList"></div>
+        <div class="csec-label">Ad Fee (Promoted Listings)</div>
+        <div id="cAdFeesList"></div>
+        <div class="cbrow ctotal cfinal" id="cFinalRow"></div>
+      </div>
+    </div>
+    <div class="calc-footer">Zayne Pro Dropshipping · Base sa aktwal na eBay international/VAT seller account (Philippines).</div>
+  </div>
+</div>
+
+<!-- In-page product detail — opens over the page, URL never changes, never navigates away -->
+<div id="overlay">
+  <div id="modal">
+    <button id="modalClose" aria-label="Close">✕</button>
+    <div id="modalContent"></div>
+  </div>
+</div>
+
+<script>
+(function(){
+  const CJ_BASE = 'https://developers.cjdropshipping.com';
+
+  const state = {
+    apiKey:'', proxyUrl:'', accessToken:'', tokenExpiry:null,
+    page:1, size:24, totalPages:1, totalRecords:0,
+    lastProducts:[],
+    listedIds: new Set(),  // tracks unique IDs of listed products
+    listedProducts: []     // full product objects for Listed tab
+  };
+
+  // ---- Tab switching ----
+  window.switchTab = function(tab){
+    ['products','listed','calc'].forEach(t => {
+      const btn = $('tab' + t.charAt(0).toUpperCase() + t.slice(1));
+      if(btn) btn.classList.toggle('active', t === tab);
+    });
+    $('productsTab').style.display = tab === 'products' ? '' : 'none';
+    $('listedTab').style.display = tab === 'listed' ? 'block' : 'none';
+    $('calcTab').style.display = tab === 'calc' ? 'block' : 'none';
+    if (tab === 'listed') renderListedTab();
+    try{ localStorage.setItem('zp_tab', tab); }catch(e){}
+  };
+
+  // ---- List / Unlist ----
+  window.toggleList = function(idx, btn){
+    const p = state.lastProducts[idx];
+    if (!p) return;
+    const uid = p.pid || p.id || p.sku;
+    if (state.listedIds.has(uid)){
+      // already listed — do nothing (must unlist from Listed tab)
+      return;
+    }
+    state.listedIds.add(uid);
+    state.listedProducts.push(p);
+    btn.textContent = '✓ Listed';
+    btn.className = 'list-btn listed';
+    updateListedCount();
+    saveListedToStorage();
+  };
+
+  window.unlistProduct = function(uid){
+    state.listedIds.delete(uid);
+    state.listedProducts = state.listedProducts.filter(p => (p.pid||p.id||p.sku) !== uid);
+    updateListedCount();
+    saveListedToStorage();
+    renderListedTab();
+    // refresh button state on current product grid
+    refreshGridListBtns();
+  };
+
+  function updateListedCount(){
+    const cnt = state.listedProducts.length;
+    const el = $('listedCount');
+    el.textContent = cnt;
+    el.classList.toggle('has-items', cnt > 0);
+  }
+
+  function refreshGridListBtns(){
+    document.querySelectorAll('.list-btn').forEach(btn => {
+      const idx = +btn.dataset.listidx;
+      const p = state.lastProducts[idx];
+      if (!p) return;
+      const uid = p.pid||p.id||p.sku;
+      const isListed = state.listedIds.has(uid);
+      btn.textContent = isListed ? '✓ Listed' : '+ List';
+      btn.className = 'list-btn ' + (isListed ? 'listed' : 'unlisted');
+    });
+  }
+
+  function renderListedTab(){
+    const empty = $('listedEmpty');
+    const grid = $('listedGrid');
+    if (!state.listedProducts.length){
+      empty.style.display = 'block';
+      grid.innerHTML = '';
+      return;
+    }
+    empty.style.display = 'none';
+    grid.innerHTML = state.listedProducts.map(p => {
+      const uid = p.pid||p.id||p.sku;
+      const price = p.discountPrice || p.nowPrice || p.sellPrice || '—';
+      const cjUrl = 'https://cjdropshipping.com/product/-p-' + encodeURIComponent(uid) + '.html';
+      return `<div class="listed-card" onclick="window.open('${cjUrl}','_blank')">
+        <img class="listed-card-img" src="${esc(p.bigImage)}" alt="" onerror="this.style.opacity=0.2">
+        <div class="listed-card-body">
+          <div class="listed-card-name">${esc(p.nameEn)}</div>
+          <div class="listed-card-price">$${price}</div>
+          <div class="listed-card-sku">${esc(p.sku||'')}</div>
+        </div>
+        <div class="listed-card-footer">
+          <span class="listed-cj-hint">Open CJ ↗</span>
+          <button class="unlist-btn" onclick="event.stopPropagation(); unlistProduct('${esc(uid)}')">Unlist</button>
+        </div>
+      </div>`;
+    }).join('');
+  }
+
+  function saveListedToStorage(){
+    try{ localStorage.setItem('zp_listed', JSON.stringify(state.listedProducts)); }catch(e){}
+  }
+
+  function loadListedFromStorage(){
+    try{
+      const saved = localStorage.getItem('zp_listed');
+      if (saved){
+        state.listedProducts = JSON.parse(saved);
+        state.listedProducts.forEach(p => state.listedIds.add(p.pid||p.id||p.sku));
+        updateListedCount();
+      }
+    }catch(e){}
+  }
+  loadListedFromStorage();
+
+  // ---- Restore last active tab ----
+  (function restoreTab(){
+    try{
+      const t = localStorage.getItem('zp_tab');
+      if(t && t !== 'products') switchTab(t);
+    }catch(e){}
+  })();
+
+  // ---- Save filters + page to localStorage ----
+  function saveFilters(){
+    try{
+      localStorage.setItem('zp_filters', JSON.stringify({
+        keyword: $('keyword').value,
+        orderBy: $('orderBy').value,
+        sortDir: $('sortDir').value,
+        freeShip: $('freeShipOnly').checked,
+        inStock: $('inStockOnly').checked,
+        page: state.page
+      }));
+    }catch(e){}
+  }
+
+  function restoreFilters(){
+    try{
+      const f = JSON.parse(localStorage.getItem('zp_filters') || 'null');
+      if(!f) return;
+      $('keyword').value = f.keyword || '';
+      $('orderBy').value = f.orderBy || '0';
+      $('sortDir').value = f.sortDir || 'desc';
+      $('freeShipOnly').checked = !!f.freeShip;
+      $('inStockOnly').checked = f.inStock !== false;
+      state.page = f.page || 1;
+    }catch(e){}
+  }
+
+  // ---- Client-side sort fix ----
+  function clientSort(products, orderBy, sortDir){
+    const asc = sortDir === 'asc';
+    const sorted = [...products];
+    if(orderBy === '2'){ // Price
+      sorted.sort((a,b)=>{
+        const pa = parseFloat(a.discountPrice||a.nowPrice||a.sellPrice||0);
+        const pb = parseFloat(b.discountPrice||b.nowPrice||b.sellPrice||0);
+        return asc ? pa-pb : pb-pa;
+      });
+    } else if(orderBy === '4'){ // Inventory
+      sorted.sort((a,b)=> asc
+        ? (a.warehouseInventoryNum||0)-(b.warehouseInventoryNum||0)
+        : (b.warehouseInventoryNum||0)-(a.warehouseInventoryNum||0));
+    } else if(orderBy === '1'){ // Listing count
+      sorted.sort((a,b)=> asc ? (a.listedNum||0)-(b.listedNum||0) : (b.listedNum||0)-(a.listedNum||0));
+    }
+    return sorted;
+  }
+
+  const $ = id => document.getElementById(id);
+
+  function setStatus(el, type, msg, busy){
+    el.className = 'status show ' + type;
+    el.innerHTML = (busy ? '<span class="spinner"></span>' : '') + msg;
+  }
+  function clearStatus(el){ el.className = 'status'; el.innerHTML=''; }
+
+  function targetUrl(path){
+    if (state.proxyUrl) {
+      const base = state.proxyUrl.replace(/\/$/,'');
+      return base + path;
+    }
+    return CJ_BASE + path;
+  }
+
+  async function cjFetch(path, opts){
+    opts = opts || {};
+    const headers = Object.assign({'Content-Type':'application/json'}, opts.headers||{});
+    let res;
+    try{
+      res = await fetch(targetUrl(path), Object.assign({}, opts, {headers}));
+    }catch(e){
+      throw new Error('NETWORK_BLOCKED');
+    }
+    let json;
+    try{ json = await res.json(); }
+    catch(e){ throw new Error('Bad response from server (not JSON). Status '+res.status); }
+    if (json.code !== 200 || json.result === false){
+      throw new Error(json.message || ('API error '+json.code));
+    }
+    return json.data;
+  }
+
+  async function connect(remember){
+    const apiKey = $('apiKey').value.trim();
+    state.proxyUrl = $('proxyUrl').value.trim();
+    if (!apiKey){ setStatus($('connectStatus'),'err','Paste your CJ API Key first.'); return; }
+    state.apiKey = apiKey;
+    $('connectBtn').disabled = true;
+    setStatus($('connectStatus'),'info','Connecting to CJ...',true);
+    try{
+      const data = await cjFetch('/api2.0/v1/authentication/getAccessToken', {
+        method:'POST',
+        body: JSON.stringify({apiKey})
+      });
+      state.accessToken = data.accessToken;
+      state.tokenExpiry = data.accessTokenExpiryDate;
+      setStatus($('connectStatus'),'ok','Connected ✓ Token valid until '+ (state.tokenExpiry||'—'));
+      $('filters').style.display = 'block';
+      $('resultsBar').style.display = 'flex';
+      try{
+        localStorage.setItem('cj_apiKey', apiKey);
+        localStorage.setItem('cj_proxyUrl', state.proxyUrl||'');
+        $('savedKeyRow').style.display = 'flex';
+      }catch(e){}
+      loadProducts();
+    }catch(e){
+      if (e.message === 'NETWORK_BLOCKED'){
+        setStatus($('connectStatus'),'err',
+          'Direct connection was blocked (likely CORS — CJ\'s API doesn\'t allow browser calls). '+
+          'Deploy a small Cloudflare Worker proxy and paste its URL under "Advanced" above, then try again.');
+      } else {
+        setStatus($('connectStatus'),'err','Connect failed: '+e.message);
+      }
+    }finally{
+      $('connectBtn').disabled = false;
+    }
+  }
+
+  // ---- restore saved API key on load (survives logout/reload; only cleared via Unlink) ----
+  (function restoreSavedKey(){
+    try{
+      const savedKey = localStorage.getItem('cj_apiKey');
+      const savedProxy = localStorage.getItem('cj_proxyUrl');
+      if (savedKey){
+        $('apiKey').value = savedKey;
+        if (savedProxy) $('proxyUrl').value = savedProxy;
+        $('savedKeyRow').style.display = 'flex';
+        restoreFilters();
+        setStatus($('connectStatus'),'info','Saved key found — connecting automatically…',true);
+        connect();
+      }
+    }catch(e){}
+  })();
+
+  $('unlinkBtn').addEventListener('click', () => {
+    if (!confirm('Forget the saved API key on this device? You\'ll need to paste it again next time.')) return;
+    try{
+      localStorage.removeItem('cj_apiKey');
+      localStorage.removeItem('cj_proxyUrl');
+    }catch(e){}
+    $('apiKey').value = '';
+    $('proxyUrl').value = '';
+    $('savedKeyRow').style.display = 'none';
+    state.accessToken=''; $('filters').style.display='none'; $('resultsBar').style.display='none';
+    $('grid').innerHTML=''; $('pagebar').innerHTML='';
+    setStatus($('connectStatus'),'info','Saved key removed. Connection cleared.');
+  });
+
+  async function loadProducts(){
+    if (!state.accessToken){ return; }
+    const btn = $('searchBtn');
+    btn.disabled = true;
+    setStatus($('searchStatus'),'info','Loading U.S. warehouse products...',true);
+    $('grid').innerHTML = '';
+
+    const params = new URLSearchParams();
+    params.set('page', state.page);
+    params.set('size', state.size);
+    params.set('countryCode', 'US');           // <-- US-only filter, no CN
+    params.set('isWarehouse', 'true');
+    params.set('orderBy', $('orderBy').value);
+    params.set('sort', $('sortDir').value);
+    const kw = $('keyword').value.trim();
+    if (kw) params.set('keyWord', kw);
+    if ($('freeShipOnly').checked) params.set('addMarkStatus','1');
+    if ($('inStockOnly').checked) params.set('startWarehouseInventory','1');
+
+    try{
+      const data = await cjFetch('/api2.0/v1/product/listV2?'+params.toString(), {
+        method:'GET',
+        headers:{ 'CJ-Access-Token': state.accessToken }
+      });
+      state.totalPages = data.totalPages || 1;
+      state.totalRecords = data.totalRecords || 0;
+      let products = (data.content||[]).flatMap(c => c.productList||[]);
+      products = clientSort(products, $('orderBy').value, $('sortDir').value);
+      state.lastProducts = products;
+      saveFilters();
+      renderGrid(products);
+      renderPager();
+      $('resultsCount').textContent = state.totalRecords.toLocaleString() + ' U.S.-stocked products • page '+state.page+' of '+state.totalPages;
+      clearStatus($('searchStatus'));
+    }catch(e){
+      if (e.message === 'NETWORK_BLOCKED'){
+        setStatus($('searchStatus'),'err','Connection blocked — set up the CORS proxy (see Advanced section) and reconnect.');
+      } else {
+        setStatus($('searchStatus'),'err','Search failed: '+e.message);
+      }
+    }finally{
+      btn.disabled = false;
+    }
+  }
+
+  function esc(s){ return (s||'').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+  function renderGrid(products){
+    const grid = $('grid');
+    if (!products.length){
+      grid.innerHTML = '<div class="empty" style="grid-column:1/-1;">No U.S.-stocked products matched. Try a different keyword or turn off "In stock only".</div>';
+      return;
+    }
+    grid.innerHTML = products.map((p, i) => {
+      const price = p.discountPrice || p.nowPrice || p.sellPrice || '—';
+      const free = p.addMarkStatus === 1;
+      const isListed = state.listedIds.has(p.pid || p.id || p.sku);
+      return `<div class="pcard" data-idx="${i}">
+        <img loading="lazy" src="${esc(p.bigImage)}" alt="${esc(p.nameEn)}" onerror="this.style.opacity=0.2">
+        <div class="pbody">
+          <div class="pname">${esc(p.nameEn)}</div>
+          <div class="pmeta">
+            <span class="price">$${price}</span>
+            ${free ? '<span class="badge">FREE SHIP</span>' : ''}
+          </div>
+          <div class="ushow">🇺🇸 US warehouse · ${p.warehouseInventoryNum||0} in stock</div>
+          <div class="sku">${esc(p.sku||'')}</div>
+          <div class="tapHint">Tap for details</div>
+          <button class="list-btn ${isListed ? 'listed' : 'unlisted'}" data-listidx="${i}"
+            onclick="event.stopPropagation(); toggleList(${i}, this)">
+            ${isListed ? '✓ Listed' : '+ List'}
+          </button>
+        </div>
+      </div>`;
+    }).join('');
+
+    grid.querySelectorAll('.pcard').forEach(el => {
+      el.addEventListener('click', () => openModal(state.lastProducts[+el.dataset.idx]));
+    });
+  }
+
+  function renderPager(){
+    const bar = $('pagebar');
+    bar.innerHTML = '';
+    if (state.totalPages <= 1) return;
+    const prev = document.createElement('button');
+    prev.className='btn-secondary'; prev.textContent='← Prev';
+    prev.disabled = state.page <= 1;
+    prev.onclick = () => { state.page--; loadProducts(); window.scrollTo({top:0,behavior:'smooth'}); };
+
+    const label = document.createElement('span');
+    label.style.color='var(--muted)'; label.style.fontSize='13px';
+    label.textContent = state.page + ' / ' + state.totalPages;
+
+    const next = document.createElement('button');
+    next.className='btn-secondary'; next.textContent='Next →';
+    next.disabled = state.page >= state.totalPages;
+    next.onclick = () => { state.page++; loadProducts(); window.scrollTo({top:0,behavior:'smooth'}); };
+
+    bar.appendChild(prev); bar.appendChild(label); bar.appendChild(next);
+  }
+
+  // ---------- in-page product modal (stays on this page, URL never changes) ----------
+  const overlay = $('overlay');
+  const modalContent = $('modalContent');
+
+  function openModal(p){
+    overlay.classList.add('show');
+    document.body.style.overflow = 'hidden';
+    modalContent.innerHTML = '<div id="modalLoading"><span class="spinner"></span>Loading product details…</div>';
+    fetchDetail(p);
+  }
+  function closeModal(){
+    overlay.classList.remove('show');
+    document.body.style.overflow = '';
+  }
+  $('modalClose').addEventListener('click', closeModal);
+  overlay.addEventListener('click', (e) => { if (e.target === overlay) closeModal(); });
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeModal(); });
+
+  async function fetchDetail(listItem){
+    try{
+      const d = await cjFetch('/api2.0/v1/product/query?pid='+encodeURIComponent(listItem.id)+'&countryCode=US', {
+        method:'GET',
+        headers:{ 'CJ-Access-Token': state.accessToken }
+      });
+      renderModal(d, listItem);
+    }catch(e){
+      modalContent.innerHTML = `<div id="modalLoading">Couldn't load details: ${esc(e.message)}</div>`;
+    }
+  }
+
+  function renderModal(d, listItem){
+    const images = (d.productImageSet && d.productImageSet.length) ? d.productImageSet : [listItem.bigImage];
+    const gallery = images.map(src => `<img src="${esc(src)}" alt="">`).join('');
+
+    const variants = (d.variants||[]).map(v => {
+      const usInv = (v.inventories||[]).find(inv => inv.countryCode === 'US');
+      const stock = usInv ? usInv.totalInventory : 0;
+      return `<div class="variant">
+        <span class="vname">${esc(v.variantKey || v.variantNameEn || '')}</span>
+        <span class="vprice">$${v.variantSellPrice ?? '—'} · ${stock} US stock</span>
+      </div>`;
+    }).join('') || '<div style="font-size:12px;color:var(--muted);">No variant breakdown returned.</div>';
+
+    const free = listItem.addMarkStatus === 1;
+
+    modalContent.innerHTML = `
+      <div id="modalGallery">${gallery}</div>
+      <div id="modalBody">
+        <div id="modalTitle">${esc(d.productNameEn)}</div>
+        <div id="modalPrice">$${d.sellPrice ?? listItem.sellPrice ?? '—'} ${free ? '<span class="badge" style="margin-left:6px;">FREE SHIP</span>' : ''}</div>
+
+        <div class="modalRow"><span>SKU</span><b style="font-family:var(--mono);">${esc(d.productSku||'')}</b></div>
+        <div class="modalRow"><span>Category</span><b>${esc(d.categoryName||'—')}</b></div>
+        <div class="modalRow"><span>Delivery</span><b>${esc(d.deliveryCycle ? d.deliveryCycle+' days' : '—')}</b></div>
+        <div class="modalRow"><span>Listed by sellers</span><b>${d.listedNum ?? '—'}</b></div>
+        <div class="modalRow"><span>Suggested retail</span><b>${esc(d.suggestSellPrice ? '$'+d.suggestSellPrice : '—')}</b></div>
+
+        <div id="variantList">${variants}</div>
+
+        ${d.description ? `<div id="modalDesc">${d.description}</div>` : ''}
+
+        <div class="row" style="margin-top:12px; gap:8px;">
+          <button class="btn-secondary" id="copyTitleBtn" style="flex:1 1 auto;">Copy Title</button>
+          <button class="btn-secondary" id="copyDescBtn" style="flex:1 1 auto;">Copy Description</button>
+        </div>
+        <div class="row" style="margin-top:8px; gap:8px;">
+          <button class="btn-secondary" id="exportCsvBtn" style="flex:1 1 auto;">⬇ Export CSV</button>
+          <a class="btn-secondary" id="openCjBtn" target="_blank" rel="noopener" style="flex:1 1 auto; text-decoration:none; display:flex; align-items:center; justify-content:center;">Open in CJ Dropshipping ↗</a>
+        </div>
+        <button class="btn-primary" id="downloadZipBtn" style="width:100%; margin-top:8px;">⬇ Download all images (ZIP)</button>
+        <div class="status" id="zipStatus"></div>
+      </div>
+    `;
+
+    // ---- Copy Title ----
+    const copyTitleBtn = $('copyTitleBtn');
+    copyTitleBtn?.addEventListener('click', () => {
+      navigator.clipboard?.writeText(d.productNameEn||'').then(()=>{
+        copyTitleBtn.textContent = 'Copied ✓';
+        setTimeout(()=>{ copyTitleBtn.textContent='Copy Title'; }, 1500);
+      });
+    });
+
+    // ---- Copy Description (plain text, HTML tags stripped) ----
+    const copyDescBtn = $('copyDescBtn');
+    copyDescBtn?.addEventListener('click', () => {
+      const tmp = document.createElement('div');
+      tmp.innerHTML = d.description || '';
+      const plain = (tmp.textContent || tmp.innerText || '').replace(/\s+\n/g,'\n').trim();
+      navigator.clipboard?.writeText(plain).then(()=>{
+        copyDescBtn.textContent = 'Copied ✓';
+        setTimeout(()=>{ copyDescBtn.textContent='Copy Description'; }, 1500);
+      });
+    });
+
+    // ---- Open in CJ Dropshipping ----
+    const openCjBtn = $('openCjBtn');
+    if (openCjBtn){
+      const pid = d.pid || listItem.id;
+      openCjBtn.href = 'https://cjdropshipping.com/product/-p-' + encodeURIComponent(pid) + '.html';
+    }
+
+    // ---- Download all images (+ video if present) as one ZIP ----
+    const zipBtn = $('downloadZipBtn');
+    const zipStatus = $('zipStatus');
+    zipBtn?.addEventListener('click', async () => {
+      if (typeof JSZip === 'undefined'){
+        setStatus(zipStatus,'err','ZIP library failed to load. Check your connection and try again.');
+        return;
+      }
+      const mediaUrls = images.slice();
+      if (d.productVideo) mediaUrls.push(d.productVideo);
+      if (!mediaUrls.length){
+        setStatus(zipStatus,'err','No media found for this product.');
+        return;
+      }
+      zipBtn.disabled = true;
+      const zip = new JSZip();
+      let done = 0;
+      setStatus(zipStatus,'info','Downloading 0 / '+mediaUrls.length+'…',true);
+      const results = await Promise.allSettled(mediaUrls.map(async (url, i) => {
+        const res = await fetch(url);
+        if (!res.ok) throw new Error('HTTP '+res.status);
+        const blob = await res.blob();
+        const isVideo = /\.(mp4|mov|webm)(\?|$)/i.test(url);
+        const ext = isVideo ? (url.match(/\.(mp4|mov|webm)/i)?.[1] || 'mp4') : 'jpg';
+        const name = (isVideo ? 'video' : 'image_'+(i+1)) + '.' + ext;
+        zip.file(name, blob);
+        done++;
+        setStatus(zipStatus,'info','Downloading '+done+' / '+mediaUrls.length+'…',true);
+      }));
+      const failed = results.filter(r => r.status === 'rejected').length;
+      try{
+        const content = await zip.generateAsync({type:'blob'});
+        const blobUrl = URL.createObjectURL(content);
+        const a = document.createElement('a');
+        a.href = blobUrl;
+        a.download = (d.productSku || 'product') + '_media.zip';
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        URL.revokeObjectURL(blobUrl);
+        setStatus(zipStatus, failed ? 'err' : 'ok',
+          failed ? (done+' downloaded, '+failed+' failed (likely blocked by source CDN).') : 'Done — '+done+' file(s) zipped ✓');
+      }catch(e){
+        setStatus(zipStatus,'err','Could not build ZIP: '+e.message);
+      }finally{
+        zipBtn.disabled = false;
+      }
+    });
+
+    // ---- Export CSV ----
+    const exportCsvBtn = $('exportCsvBtn');
+    if (exportCsvBtn){
+      exportCsvBtn.addEventListener('click', () => {
+        const pid = d.pid || listItem.id || '';
+        const cjUrl = 'https://cjdropshipping.com/product/-p-' + encodeURIComponent(pid) + '.html';
+        const price = d.sellPrice ?? listItem.sellPrice ?? '';
+        const suggestPrice = d.suggestSellPrice || '';
+        const stock = listItem.warehouseInventoryNum ?? '';
+        const allImages = images.join('|');
+        const rows = [
+          ['Field','Value'],
+          ['Name', d.productNameEn || ''],
+          ['SKU', d.productSku || ''],
+          ['Price (USD)', price],
+          ['Suggested Retail (USD)', suggestPrice],
+          ['Category', d.categoryName || ''],
+          ['Listed by Sellers', d.listedNum ?? ''],
+          ['Delivery (days)', d.deliveryCycle || ''],
+          ['US Stock', stock],
+          ['Free Shipping', listItem.addMarkStatus === 1 ? 'Yes' : 'No'],
+          ['CJ Product URL', cjUrl],
+          ['Image URLs', allImages],
+        ];
+        const csv = rows.map(r => r.map(v => '"' + String(v).replace(/"/g,'""') + '"').join(',')).join('\n');
+        const blob = new Blob([csv], {type:'text/csv'});
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = (d.productSku || 'product') + '_details.csv';
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        URL.revokeObjectURL(url);
+        exportCsvBtn.textContent = 'Exported ✓';
+        setTimeout(() => { exportCsvBtn.textContent = '⬇ Export CSV'; }, 2000);
+      });
+    }
+  }
+
+  $('connectBtn').addEventListener('click', connect);
+  $('searchBtn').addEventListener('click', () => { state.page = 1; loadProducts(); });
+  $('disconnectBtn').addEventListener('click', () => {
+    state.accessToken=''; $('filters').style.display='none'; $('resultsBar').style.display='none';
+    $('grid').innerHTML=''; $('pagebar').innerHTML=''; clearStatus($('connectStatus'));
+  });
+
+  // ========== CALCULATOR ==========
+  (function initCalc(){
+    const C_INTL = 1.3, C_VAT = 12;
+    const C_CATS = {
+      most:         { tiers:[{limit:7500,rate:13.6},{limit:Infinity,rate:2.35}] },
+      media:        { tiers:[{limit:7500,rate:15.3},{limit:Infinity,rate:2.35}] },
+      coins:        { tiers:[{limit:7500,rate:13.25},{limit:Infinity,rate:2.35}] },
+      bullion:      { tiers:[{limit:7500,rate:13.6},{limit:Infinity,rate:7}] },
+      collectibles: { tiers:[{limit:7500,rate:13.25},{limit:Infinity,rate:2.35}] },
+      jewelry:      { tiers:[{limit:5000,rate:15},{limit:Infinity,rate:9}] },
+      bags:         { tiers:[{limit:2000,rate:15},{limit:Infinity,rate:9}] },
+      watches:      { tiers:[{limit:1000,rate:15},{limit:7500,rate:6.5},{limit:Infinity,rate:3}] },
+      guitars:      { tiers:[{limit:7500,rate:6.7},{limit:Infinity,rate:2.35}] },
+      heavy:        { tiers:[{limit:15000,rate:3},{limit:Infinity,rate:0.5}] },
+      nft:          { tiers:[{limit:Infinity,rate:5}] },
+      shoes:        { special:'shoes' }
+    };
+
+    let cMode = 'forward', cCat = 'most', cLastSolved = 0;
+
+    function tieredFee(amt, tiers){
+      let fee=0, prev=0;
+      for(const t of tiers){
+        const part = Math.max(0, Math.min(amt,t.limit)-prev);
+        fee += part*t.rate/100; prev=t.limit;
+        if(amt<=t.limit) break;
+      }
+      return fee;
+    }
+    function computeFVF(amt, cat){
+      const c = C_CATS[cat]||C_CATS.most;
+      if(c.special==='shoes'){
+        if(amt>=150) return {fvfAmt:amt*0.08, fixedFee:0, note:'8% (walang per-order fee sa $150+)'};
+        const ff = amt<=10?0.30:0.40;
+        return {fvfAmt:amt*0.136, fixedFee:ff, note:'13.6% (mas mababa sa $150)'};
+      }
+      const fvfAmt = tieredFee(amt, c.tiers);
+      const fixedFee = amt<=10?0.30:0.40;
+      const note = c.tiers.length===1 ? `${c.tiers[0].rate}% flat` :
+        c.tiers.map((t,i,a)=>{
+          const prev = i>0?a[i-1].limit:0;
+          return t.limit===Infinity?`${t.rate}% sa lagpas $${prev.toLocaleString()}`:`${t.rate}% hanggang $${t.limit.toLocaleString()}`;
+        }).join(', ');
+      return {fvfAmt, fixedFee, note};
+    }
+    function computeFrom(amt, adPct){
+      const {fvfAmt,fixedFee} = computeFVF(amt, cCat);
+      const intlAmt = amt*C_INTL/100;
+      const feesBeforeVat = fvfAmt+intlAmt+fixedFee;
+      const vatOnFees = feesBeforeVat*C_VAT/100;
+      const netProceeds = amt - feesBeforeVat - vatOnFees;
+      const adAmt = amt*adPct/100;
+      const vatOnAd = adAmt*C_VAT/100;
+      const totalAdFee = adAmt+vatOnAd;
+      return {fvfAmt,fixedFee,intlAmt,vatOnFees,netProceeds,adAmt,vatOnAd,totalAdFee,finalNet:netProceeds-totalAdFee};
+    }
+    function solveFor(target, adPct){
+      if(target<=0) return 0;
+      let hi=Math.max(target*2,100), g=0;
+      while(computeFrom(hi,adPct).finalNet<target&&g<60){hi*=2;g++;}
+      if(g>=60) return null;
+      let lo=0;
+      for(let i=0;i<100;i++){const mid=(lo+hi)/2; computeFrom(mid,adPct).finalNet<target?lo=mid:hi=mid;}
+      return (lo+hi)/2;
+    }
+    function cm(n){const s=n<0?'-':''; return s+'$'+Math.abs(n).toFixed(2);}
+    function renderCRows(id, rows){
+      $(id).innerHTML = rows.map(r=>`
+        <div class="cbrow${r.total?' ctotal':''}${r.final?' cfinal':''}">
+          <span class="cname2">${r.label}</span>
+          <span class="${r.neg?'cneg':''}">${r.value}</span>
+        </div>`).join('');
+    }
+    function updateFvfDisplay(amt){
+      const {fvfAmt,note} = computeFVF(amt||0, cCat);
+      const pct = amt>0?(fvfAmt/amt*100):0;
+      $('cFvfDisplay').textContent = pct.toFixed(2)+'% ✏️';
+      $('cFvfNote').textContent = note;
+    }
+    function renderAllFrom(amt, adPct){
+      const r = computeFrom(amt, adPct);
+      cLastSolved = amt;
+      updateFvfDisplay(amt);
+      $('cHeadlineAmount').textContent = cMode==='forward'?cm(r.finalNet):cm(amt);
+      $('cHeadlineAmount').classList.toggle('warn', r.finalNet<0);
+      renderCRows('cOrderFeesList',[
+        {label:'Amount', value:cm(amt)},
+        {label:'Final Value Fee', value:cm(-r.fvfAmt), neg:true},
+        {label:`International Fee (${C_INTL}%)`, value:cm(-r.intlAmt), neg:true},
+        {label:'Final Value Fee (fixed)', value:cm(-r.fixedFee), neg:true},
+        {label:`VAT (${C_VAT}%)`, value:cm(-r.vatOnFees), neg:true},
+        {label:'Net Proceeds', value:cm(r.netProceeds), total:true},
+      ]);
+      renderCRows('cAdFeesList',[
+        {label:`Ad Fee (${adPct}%)`, value:cm(-r.adAmt), neg:true},
+        {label:`VAT (${C_VAT}%)`, value:cm(-r.vatOnAd), neg:true},
+        {label:'Total Ad Fee', value:cm(-r.totalAdFee), total:true, neg:true},
+      ]);
+      $('cFinalRow').innerHTML = cMode==='forward'
+        ? `<span class="cname2">Final Kita (after ad fee)</span><span>${cm(r.finalNet)}</span>`
+        : `<span class="cname2">I-list mo sa presyong</span><span>${cm(amt)}</span>`;
+    }
+    function cCalc(){
+      const adPct = parseFloat($('cAdPct').value)||0;
+      if(cMode==='forward'){
+        renderAllFrom(parseFloat($('cAmount').value)||0, adPct);
+      } else {
+        const cost=parseFloat($('cRevCost').value)||0;
+        const profit=parseFloat($('cRevProfit').value)||0;
+        const amt = solveFor(cost+profit, adPct);
+        if(amt===null){
+          $('cHeadlineAmount').textContent='—'; $('cHeadlineAmount').classList.add('warn');
+          renderCRows('cOrderFeesList',[{label:'Ad rate masyadong mataas',value:'imposible',neg:true}]);
+          renderCRows('cAdFeesList',[]);
+          $('cFinalRow').innerHTML='<span class="cname2">Ayusin ang Ad Rate</span><span>—</span>';
+          return;
+        }
+        renderAllFrom(amt, adPct);
+      }
+    }
+    function setCMode(m){
+      cMode=m;
+      $('cBtnForward').classList.toggle('active',m==='forward');
+      $('cBtnReverse').classList.toggle('active',m==='reverse');
+      $('cForwardInputs').style.display=m==='forward'?'block':'none';
+      $('cReverseInputs').style.display=m==='reverse'?'block':'none';
+      $('cResultsTitle').textContent=m==='forward'?'Net Proceeds':'Presyong Ilalagay sa eBay';
+      $('cResultsSub').textContent=m==='forward'?'Kikitain mo pagkatapos ng lahat ng fees.':'Ito ang dapat mong i-list sa eBay.';
+      $('cHeadlineLabel').textContent=m==='forward'?'Final na Matitira':'Ipa-presyo Mo';
+      cCalc();
+    }
+    $('cBtnForward').onclick=()=>setCMode('forward');
+    $('cBtnReverse').onclick=()=>setCMode('reverse');
+    $('cCategorySelect').addEventListener('change',()=>{ cCat=$('cCategorySelect').value; updateFvfDisplay(cLastSolved); cCalc(); });
+    ['cAmount','cAdPct','cRevCost','cRevProfit'].forEach(id=>$(id).addEventListener('input',cCalc));
+    updateFvfDisplay(21.29);
+    cCalc();
+  })();
+
+})();
+</script>
+</body>
+</html>
